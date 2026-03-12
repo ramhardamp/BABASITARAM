@@ -1,0 +1,28 @@
+=== BABASITARAMvaultv5.1 Android APK Instructions ===
+
+Android APK banane ke liye yeh steps follow karo:
+
+OPTION 1: PWA (Recommended - No APK needed)
+-------------------------------------------
+1. Chrome browser kholo Android mein
+2. vault_android_app.html file kisi web server par upload karo
+3. "Add to Home Screen" karo
+4. Ek native-jaise app ban jayega!
+
+OPTION 2: WebView APK (Android Studio)
+---------------------------------------
+1. Android Studio install karo
+2. New Project → Empty Activity
+3. MainActivity.java mein:
+   webView.loadUrl("file:///android_asset/vault_android_app.html");
+4. assets/ folder mein vault_android_app.html copy karo
+5. Build → Generate Signed APK
+
+OPTION 3: Capacitor/Cordova (Easy)
+-------------------------------------
+npm install -g @capacitor/cli
+ionic start BABASITARAMvault blank
+cp vault_android_app.html src/
+npx cap add android
+npx cap open android
+→ Build APK from Android Studio

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="hi" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup — BABASITARAM v5.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07070a;
+      --glass-bg: rgba(18, 18, 24, 0.8);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --accent: #c084fc;
+      --accent-gold: #fbbf24;
+      --accent-glow: rgba(192, 132, 252, 0.25);
+      --purple-gold: linear-gradient(135deg, #c084fc 0%, #fbbf24 100%);
+      --text: #f1f5f9;
+      --text-dim: #94a3b8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 40px 20px;
+    }
+
+    /* Ambient animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -10%;
+      right: -10%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      z-index: -1;
+      filter: blur(80px);
+      animation: float 10s infinite alternate;
+    }
+
+    @keyframes float {
+      from {
+        transform: translate(0, 0);
+      }
+
+      to {
+        transform: translate(-10%, 10%);
+      }
+    }
+
+    .container {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 44px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+      position: relative;
+      animation: fadeIn 0.6s cubic-bezier(0.2, 0, 0.2, 1);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo-badge {
+      width: 50px;
+      height: 50px;
+      background: var(--purple-gold);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(192, 132, 252, 0.4);
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+      background: var(--purple-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p {
+      color: var(--text-dim);
+      margin-bottom: 36px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: 0.3s;
+    }
+
+    .section:hover {
+      border-color: rgba(192, 132, 252, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .section h3 {
+      font-size: 11px;
+      color: var(--accent-gold);
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 13px 48px 13px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      background: rgba(192, 132, 252, 0.05);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      opacity: 0.6;
+    }
+
+    .eye-btn:hover {
+      opacity: 1;
+      color: #fff;
+    }
+
+    .strength-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin: 12px 0 6px;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      width: 0;
+      border-radius: 10px;
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .strength-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--purple-gold);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.3s cubic-bezier(0.2, 0, 0, 1);
+      box-shadow: 0 10px 30px var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(192, 132, 252, 0.5);
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent);
+    }
+
+    .skip {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-dim);
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .skip:hover {
+      color: var(--accent);
+    }
+
+    .tgl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 12px 0;
+    }
+
+    .tgl {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .tgl input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .tgl-sl {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      transition: 0.3s;
+    }
+
+    .tgl-sl:before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+
+    input:checked+.tgl-sl {
+      background: var(--accent);
+    }
+
+    input:checked+.tgl-sl:before {
+      transform: translateX(20px);
+    }
+
+    .status-msg {
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 16px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status-ok {
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      color: #22d3ee;
+    }
+
+    .status-err {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #f43f5e;
+    }
+
+    #backupPwWrap {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px dashed var(--glass-border);
+    }
+
+    ::-webkit-file-upload-button {
+      background: var(--purple-gold);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 11px;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: 0.2s;
+    }
+
+    ::-webkit-file-upload-button:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+
+    .file-input {
+      font-size: 12px;
+      color: var(--text-dim);
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 8px;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="logo-badge">✨</div>
+    <h1>BABASITARAM <span style="font-weight: 300; opacity: 0.7;">v5.0</span></h1>
+    <p>Apne naye digital fortress ka swagat hai. Apna master password set karein aur data secure karein.</p>
+
+    <!-- Master Password Section -->
+    <div class="section">
+      <h3><span>🔑</span> Master Password</h3>
+      <div class="input-wrap">
+        <input type="password" id="masterPw" placeholder="Naya master password banayein" autocomplete="new-password">
+        <button class="eye-btn" id="eyeBtn1" tabindex="-1">👁️</button>
+      </div>
+      <div class="strength-bar">
+        <div class="strength-fill" id="strengthFill"></div>
+      </div>
+      <div class="strength-label" id="strengthLabel">Password ki mazbooti check ho rahi hai...</div>
+
+      <div class="input-wrap" style="margin-top:16px;">
+        <input type="password" id="confirmPw" placeholder="Password confirm karein" autocomplete="new-password">
+        <button class="eye-btn" id="eyeBtn2" tabindex="-1">👁️</button>
+      </div>
+      <div class="status-msg" id="pwStatus"></div>
+      <div style="font-size:11px; color:var(--text-dim); margin-top:12px; line-height:1.4;">
+        ⚠️ <span style="color:var(--accent-gold)">Dhyan Dein:</span> Agar aap password bhul gaye, toh data wapas nahi
+        milega.
+      </div>
+    </div>
+
+    <!-- Import Section -->
+    <div class="section">
+      <h3><span>📥</span> Data Import (Optional)</h3>
+      <input type="file" id="importFile" class="file-input" accept=".json,.vaultbak,.csv,.txt,.tsv" multiple>
+
+      <div id="backupPwWrap">
+        <h4 style="font-size:12px; color:var(--accent); margin-bottom:10px;">🔐 Backup Password Chahiye</h4>
+        <div class="input-wrap">
+          <input type="password" id="backupPw" placeholder="Purani file ka password">
+          <button class="eye-btn" id="eyeBtn3" tabindex="-1">👁️</button>
+        </div>
+        <button class="btn btn-secondary" id="decryptBtn" style="padding:10px; font-size:13px; margin-top:0;">🔓 Import
+          Karein</button>
+      </div>
+
+      <div class="status-msg" id="importStatus"></div>
+    </div>
+
+    <!-- Preferences Section -->
+    <div class="section">
+      <h3><span>⚡</span> Preferences</h3>
+
+      <div class="tgl-row">
+        <div>
+          <div style="font-size:14px; font-weight:700;">Password Auto-Save</div>
+          <div style="font-size:11px; color:var(--text-dim);">Naye logins apne aap detect honge</div>
+        </div>
+        <label class="tgl">
+          <input type="checkbox" id="autoSaveChk" checked>
+          <span class="tgl-sl"></span>
+        </label>
+      </div>
+
+      <div class="tgl-row">
+        <div>
+          <div style="font-size:14px; font-weight:700;">Password Yaad Rakhein</div>
+          <div style="font-size:11px; color:var(--text-dim);">Lock screen baar baar nahi aayegi</div>
+        </div>
+        <label class="tgl">
+          <input type="checkbox" id="rememberMasterChk">
+          <span class="tgl-sl"></span>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn" id="saveBtn">🚀 Setup Complete Karein</button>
+    <div class="skip" id="skipBtn">Baaki kaam baad mein — Skip Karein</div>
+  </div>
+
+  <script src="src/crypto.js"></script>
+  <script src="src/theme.js"></script>
+  <script src="setup.js"></script>
+</body>
+
+</html>

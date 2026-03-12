@@ -1,0 +1,8 @@
+{
+  "env": { "browser": true, "es2022": true, "webextensions": true },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-undef": "error",
+    "no-unreachable": "error"
+  }
+}

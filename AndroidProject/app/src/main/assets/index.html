@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Web App & Theme Info -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0F172A">
+    <title>BABASITARAM Vault</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Modern Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        /* Premium Dark Theme variables */
+        :root {
+            /* Backgrounds */
+            --bg-base: #0F172A; /* Slate 900 */
+            --bg-surface: #1E293B; /* Slate 800 */
+            --bg-elevated: #334155; /* Slate 700 */
+            --bg-glass: rgba(30, 41, 59, 0.7);
+            
+            /* Accents */
+            --brand-primary: #8B5CF6; /* Violet 500 */
+            --brand-secondary: #C084FC; /* Violet 400 */
+            --brand-gradient: linear-gradient(135deg, #8B5CF6, #C084FC);
+            
+            /* Typography */
+            --text-primary: #F8FAFC; /* Slate 50 */
+            --text-secondary: #cbd5e1; /* Slate 300 */
+            --text-muted: #94a3b8; /* Slate 400 */
+            
+            /* Status / Semantic */
+            --success: #10B981; /* Emerald 500 */
+            --warning: #F59E0B; /* Amber 500 */
+            --error: #EF4444; /* Red 500 */
+            --error-bg: rgba(239, 68, 68, 0.15);
+            
+            /* Structural */
+            --border: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(139, 92, 246, 0.5);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            /* Shadows for depth */
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.2);
+            --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Views System */
+        .view {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            background: var(--bg-base);
+            animation: fadeIn 0.3s ease;
+        }
+        .view.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Setup & Lock Screens */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 24px;
+            background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), var(--bg-base) 60%);
+        }
+
+        .auth-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 40px 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--brand-gradient);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 24px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+
+        /* Form Elements */
+        .input-group { margin-bottom: 16px; text-align: left; }
+        .input-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .input-field {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+        }
+        .input-field::placeholder { color: var(--text-muted); }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--brand-gradient);
+            color: white;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+            margin-top: 24px;
+        }
+        .btn-primary:active { transform: scale(0.98); box-shadow: none; }
+        
+        .btn-secondary { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); margin-top: 12px; }
+        .btn-secondary:active { background: var(--bg-elevated); }
+
+        .btn-danger { background: var(--error-bg); color: var(--error); border: 1px solid rgba(239, 68, 68, 0.3); margin-top: 12px; }
+
+        .error-message {
+            color: var(--error);
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+            min-height: 18px;
+        }
+
+        /* App Header */
+        .header {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .header-logo {
+            width: 32px; height: 32px;
+            background: var(--brand-gradient);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .header-title-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+        .header-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        
+        .header-actions { display: flex; gap: 8px; }
+        .icon-btn {
+            width: 40px; height: 40px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .icon-btn:active { background: var(--bg-surface); transform: scale(0.95); }
+
+        /* Search Bar */
+        .search-container { padding: 16px 20px; background: var(--bg-base); border-bottom: 1px solid var(--border); }
+        .search-box {
+            position: relative;
+            display: flex; align-items: center;
+        }
+        .search-icon { position: absolute; left: 14px; font-size: 16px; color: var(--text-muted); }
+        .search-input {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 14px 14px 14px 40px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--brand-secondary); }
+
+        /* Lists */
+        .content-area { flex: 1; overflow-y: auto; padding-bottom: 24px; -webkit-overflow-scrolling: touch; }
+        
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; color: var(--text-muted); text-align: center; padding: 40px 20px;
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-text { font-size: 15px; font-weight: 500; }
+
+        .item-list { padding: 8px 16px; }
+        .item-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .item-card:active { transform: scale(0.98); background: var(--bg-elevated); }
+        
+        .item-avatar {
+            width: 48px; height: 48px;
+            border-radius: var(--radius-md);
+            background: var(--brand-primary);
+            color: white;
+            font-size: 20px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .item-details { flex: 1; min-width: 0; }
+        .item-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-sub { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+        
+        .item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .action-icon {
+            width: 36px; height: 36px;
+            background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary); cursor: pointer;
+        }
+        
+        .badge {
+            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .badge-danger { background: var(--error-bg); color: var(--error); }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed; right: 24px; bottom: 84px; /* above nav */
+            width: 56px; height: 56px;
+            border-radius: 28px;
+            background: var(--brand-gradient);
+            color: white;
+            font-size: 24px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-glow);
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 50;
+        }
+        .fab:active { transform: scale(0.9); }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 40;
+        }
+        .nav-item {
+            flex: 1; padding: 12px 0;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+            background: none; border: none; cursor: pointer; transition: color 0.2s;
+        }
+        .nav-item.active { color: var(--brand-secondary); }
+        .nav-icon { font-size: 22px; margin-bottom: 2px; }
+        .nav-item.active .nav-icon { filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5)); }
+
+        /* Slide-up Panels / Modals */
+        .overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.active { opacity: 1; pointer-events: all; }
+
+        .sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
+            max-height: 90vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+        }
+        .sheet.active { transform: translateY(0); }
+        
+        .sheet-handle { width: 40px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: 12px auto 0; }
+        
+        .sheet-header {
+            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        .sheet-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+        .btn-close { background: var(--bg-elevated); border: none; color: var(--text-primary); width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+        
+        .sheet-body { padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+        /* Display Values */
+        .read-field { background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .read-text { flex: 1; font-size: 15px; color: var(--text-primary); word-break: break-all; }
+        .read-text.mono { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 600; letter-spacing: 1px; }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed; bottom: 100px; left: 50%; transform: translate(-50%, 20px);
+            background: var(--text-primary); color: var(--bg-base);
+            padding: 12px 24px; border-radius: var(--radius-xl);
+            font-size: 14px; font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .toast.error { background: var(--error); color: white; }
+
+        /* Password Strength Meter */
+        .strength-meter { display: flex; gap: 4px; margin-top: 8px; }
+        .strength-bar { height: 4px; flex: 1; background: rgba(255,255,255,0.1); border-radius: 2px; transition: background 0.3s; }
+        .strength-bar.weak { background: var(--error); }
+        .strength-bar.medium { background: var(--warning); }
+        .strength-bar.strong { background: var(--success); }
+
+    </style>
+</head>
+<body>
+    <!-- SETUP VIEW -->
+    <div id="viewSetup" class="view">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-icon" style="background:none;box-shadow:none;"><img src="images/logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg);"></div>
+                <div style="font-size: 14px; color: var(--brand-secondary); font-weight: 600; margin-bottom: 8px;">श्री संत श्री रामचंद्र दास जी की कृपा</div>
+                <h1 class="title">Vault में आपका स्वागत है</h1>
+                <p class="subtitle">अपना सुरक्षित ऑफलाइन मास्टर पासवर्ड बनाएं</p>
+                
+                <div class="input-group">
+                    <input type="password" id="setupNewPin" class="input-field" placeholder="मास्टर पासवर्ड (कम से कम 8 अक्षर)">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="setupConfirmPin" class="input-field" placeholder="पासवर्ड की पुष्टि करें">
+                </div>
+                <div id="setupError" class="error-message"></div>
+                
+                <button class="btn btn-primary" onclick="appCreateVault()">सुरक्षित Vault बनाएं</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOCK VIEW -->
+    <div id="viewLock" class="view active">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-icon" style="background:none;box-shadow:none;"><img src="images/logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg);"></div>
+                <div style="font-size: 14px; color: var(--brand-secondary); font-weight: 600; margin-bottom: 8px;">श्री संत श्री रामचंद्र दास जी की कृपा</div>
+                <h1 class="title">Vault लॉक है</h1>
+                <p class="subtitle">अनलॉक करने के लिए मास्टर पासवर्ड डालें</p>
+                
+                <div class="input-group">
+                    <input type="password" id="lockPin" class="input-field" placeholder="मास्टर पासवर्ड" onkeypress="if(event.key==='Enter')appUnlockVault()">
+                </div>
+                <div id="lockError" class="error-message"></div>
+                
+                <button class="btn btn-primary" onclick="appUnlockVault()">अनलॉक करें</button>
+                
+                <div id="bioUnlockRow" style="margin-top: 20px; display: none;">
+                    <button class="icon-btn" onclick="appBiometricUnlock()" style="width: 56px; height: 56px; margin: 0 auto; border-radius: 28px; font-size: 28px; background: var(--bg-surface);">☝️</button>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">बायोमेट्रिक से अनलॉक करें</p>
+                </div>
+
+                <div style="margin-top: 24px; text-align: center; font-size: 13px;">
+                    <button onclick="document.getElementById('viewLock').classList.remove('active'); document.getElementById('viewSetup').classList.add('active');" style="background:none;border:none;color:var(--text-muted);cursor:pointer;text-decoration:underline;">Vault रिसेट करें (सब कुछ मिटा दें)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="viewMain" class="view">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-brand">
+                <div class="header-logo" style="background:none;"><img src="images/logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm);"></div>
+                <div>
+                    <div style="font-size: 10px; color: var(--brand-secondary); font-weight: 700; letter-spacing: 0.5px;">श्री संत श्री रामचंद्र दास जी की कृपा</div>
+                    <div class="header-title-text">BABASITARAM Password Manager</div>
+                    <div class="header-subtitle" id="mainHeaderSub">ऑफलाइन और सुरक्षित</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+                <button class="icon-btn" onclick="appLockVault()">🔒</button>
+            </div>
+        </header>
+
+        <!-- Category Tabs -->
+        <div style="padding: 12px 20px 0; background: var(--bg-base); display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+            <button class="badge" style="background:var(--brand-primary); color:white; border:none; padding:6px 14px; cursor:pointer;" onclick="appSetTab('all', this)">सब</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Social', this)">सोशल</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Banking', this)">बैंकिंग</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Work', this)">ऑफिस</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Shopping', this)">शॉपिंग</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Other', this)">अन्य</button>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="पासवर्ड खोजें..." oninput="appRenderList(this.value)">
+            </div>
+        </div>
+
+        <!-- List Content -->
+        <div class="content-area" id="mainListArea">
+            <!-- Injected dynamically -->
+        </div>
+
+        <!-- FAB -->
+        <button class="fab" onclick="window.editingId=null;uiOpenSheet('sheetEditItem')">➕</button>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="appSetTab('all', this)"><div class="nav-icon">🔐</div>सभी आइटम</button>
+            <button class="nav-item" onclick="appSetTab('fav', this)"><div class="nav-icon">⭐</div>पसंदीदा</button>
+            <button class="nav-item" onclick="openAuditSheet()"><div class="nav-icon">🛡️</div>ऑडिट</button>
+            <button class="nav-item" onclick="uiOpenSheet('sheetSettings')"><div class="nav-icon">⚙️</div>सेटिंग्स</button>
+        </nav>
+    </div>
+
+    <!-- OVERLAYS & MODALS -->
+    <div class="overlay" id="appOverlay" onclick="uiCloseAllSheets()"></div>
+
+    <!-- READ ITEM SHEET -->
+    <div class="sheet" id="sheetReadItem">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 class="sheet-title" id="readTitle">खाते का विवरण</h2>
+            <div style="display:flex;gap:8px">
+                <button class="icon-btn" id="readFavBtn" onclick="appToggleFavorite()">☆</button>
+                <button class="btn-close" onclick="uiCloseAllSheets()">✕</button>
+            </div>
+        </div>
+        <div class="sheet-body" id="readBody">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <!-- EDIT/ADD ITEM SHEET -->
+    <div class="sheet" id="sheetEditItem">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 class="sheet-title" id="editHeaderTitle">नया आइटम</h2>
+            <button class="btn-close" onclick="uiCloseAllSheets()">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="input-group">
+                <label class="input-label">शीर्षक *</label>
+                <div style="display:flex;gap:8px">
+                    <input type="text" id="editTitle" class="input-field" placeholder="जैसे: Google, Netflix">
+                    <button class="icon-btn" onclick="uiOpenAppSelector()" title="App से चुनें">📱</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">यूजरनेम / ईमेल</label>
+                <input type="text" id="editUser" class="input-field" placeholder="user@example.com">
+            </div>
+            <div class="input-group">
+                <label class="input-label">मोबाइल नंबर</label>
+                <input type="tel" id="editMobile" class="input-field" placeholder="9876543210">
+            </div>
+            <div class="input-group">
+                <label class="input-label">श्रेणी (Category)</label>
+                <select id="editCategory" class="input-field">
+                    <option value="Other">अन्य (Other)</option>
+                    <option value="Social">सोशल मीडिया</option>
+                    <option value="Banking">बैंकिंग और फाइनेंस</option>
+                    <option value="Work">ऑफिस / पर्सनल</option>
+                    <option value="Shopping">शॉपिंग</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="input-label">पासवर्ड *</label>
+                <div style="display:flex;gap:8px">
+                    <input type="password" id="editPass" class="input-field" placeholder="गुप्त पासवर्ड" oninput="appUpdateStrengthMeter()">
+                    <button class="icon-btn" onclick="appTogglePassVis('editPass')">👁</button>
+                    <button class="icon-btn" onclick="appGeneratePassword()">⚡</button>
+                </div>
+                <div class="strength-meter">
+                    <div class="strength-bar" id="strM1"></div>
+                    <div class="strength-bar" id="strM2"></div>
+                    <div class="strength-bar" id="strM3"></div>
+                    <div class="strength-bar" id="strM4"></div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">वेबसाइट URL</label>
+                <input type="url" id="editUrl" class="input-field" placeholder="https://...">
+            </div>
+            <div class="input-group">
+                <label class="input-label">नोट्स</label>
+                <textarea id="editNotes" class="input-field" rows="3" placeholder="वैकल्पिक नोट्स..."></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="appSaveItem()">💾 आइटम सुरक्षित करें</button>
+            <button class="btn btn-danger" id="editDeleteBtn" onclick="appDeleteItem()" style="display:none">🗑 आइटम हटाएं</button>
+        </div>
+    </div>
+
+    <!-- SETTINGS & EXPORT SHEET -->
+    <div class="sheet" id="sheetSettings">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 class="sheet-title">⚙️ Vault सेटिंग्स</h2>
+            <button class="btn-close" onclick="uiCloseAllSheets()">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div style="margin-bottom: 32px">
+                <h3 class="input-label">Chrome एक्सटेंशन के साथ सिंक करें</h3>
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">मोबाइल ऐप और Chrome एक्सटेंशन के बीच परफेक्ट सिंक के लिए `.vaultbak` फाइलें बनाएं।</p>
+                <button class="btn btn-primary" onclick="appActionExportBackup()" style="margin-top:0">📤 Chrome बैकअप एक्सपोर्ट करें (.vaultbak)</button>
+                
+                <button class="btn btn-secondary" onclick="appActionImportBackup()">📥 बैकअप इम्पोर्ट करें (.vaultbak) / JSON</button>
+                <button class="btn btn-pro" onclick="document.getElementById('hiddenCSVInput').click()">📤 Chrome/Bitwarden CSV से माइग्रेट करें</button>
+                <input type="file" id="hiddenFileInput" style="display:none" accept=".vaultbak,.json" onchange="appHandleFileSelected(this)">
+                <input type="file" id="hiddenCSVInput" style="display:none" accept=".csv" onchange="appHandleCSVSelected(this)">
+            </div>
+            
+            <div style="margin-bottom: 32px">
+                <h3 class="input-label">सुरक्षा सेटिंग्स</h3>
+                <div class="input-group">
+                    <label class="input-label">ऑटो-लॉक (निष्क्रियता के बाद)</label>
+                    <select id="settingAutoLock" class="input-field" onchange="APP_SETTINGS.autoLockMins=parseInt(this.value);AUTO_LOCK_MINS=parseInt(this.value);saveSettings();resetAutoLockTimer();">
+                        <option value="1">1 मिनट</option>
+                        <option value="5" selected>5 मिनट</option>
+                        <option value="10">10 मिनट</option>
+                        <option value="30">30 मिनट</option>
+                    </select>
+                </div>
+                <div class="input-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <label class="input-label" style="margin: 0; text-transform: none;">फिंगरप्रिंट अनलॉक (Biometric)</label>
+                    <input type="checkbox" id="settingBio" style="width: 20px; height: 20px; accent-color: var(--brand-primary);" onchange="APP_SETTINGS.biometrics=this.checked;saveSettings();checkBioVisibility();">
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 32px">
+                <h3 class="input-label">अन्य विकल्प</h3>
+                <button class="btn btn-secondary" onclick="appActionExportCSV()" style="margin-top:0">📤 सादा CSV एक्सपोर्ट करें (अन-एन्क्रिप्टेड)</button>
+                <button class="btn btn-danger" onclick="appActionWipe()" style="margin-top:12px">⚠️ पूरा Vault सुरक्षित रूप से मिटाएं</button>
+            </div>
+
+            <div style="text-align: center; border-top: 1px solid var(--border); padding-top: 24px;">
+                <p style="font-size: 13px; color: var(--text-muted);">सहायता के लिए संपर्क करें:</p>
+                <p style="font-size: 14px; font-weight: 600; color: var(--brand-secondary);">ramhardamp@gmail.com</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP SELECTOR SHEET -->
+    <div class="sheet" id="sheetAppSelector">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 class="sheet-title">📱 इंस्टॉल किए गए Apps</h2>
+            <button class="btn-close" onclick="uiCloseSheet('sheetAppSelector')">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="search-box" style="margin-bottom: 20px;">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="appSearchInput" placeholder="App खोजें..." oninput="uiRenderAppList(this.value)">
+            </div>
+            <div id="appListArea" style="max-height: 50vh; overflow-y: auto;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SECURITY AUDIT SHEET -->
+    <div class="sheet" id="sheetAudit">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 class="sheet-title">🛡️ सुरक्षा स्वास्थ्य ऑडिट</h2>
+            <button class="btn-close" onclick="uiCloseAllSheets()">✕</button>
+        </div>
+        <div class="sheet-body" id="auditBody">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <!-- Global Toast Element -->
+    <div id="appToast" class="toast"></div>
+
+    <!-- Native JavaScript Implementation -->
+    <script src="vault_core.js"></script>
+    <script src="vault_ui.js"></script>
+</body>
+</html>

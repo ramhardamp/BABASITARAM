@@ -1,0 +1,207 @@
+package com.babasitaram.vault;
+
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.content.ClipData;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import java.util.ArrayList;
+import java.util.List;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private WebView webView;
+    private ValueCallback<Uri[]> mFilePathCallback;
+    private static final int FILECHOOSER_RESULTCODE = 1;
+
+    @SuppressLint("SetJavaScriptEnabled")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        webView = new WebView(this);
+        setContentView(webView);
+
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setDatabaseEnabled(true);
+        // Optimize for speed
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null);
+        } else {
+            webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
+        }
+
+        webView.setWebViewClient(new WebViewClient() {
+            @TargetApi(Build.VERSION_CODES.N)
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                // Return false to handle URLs within the WebView
+                return false;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return false;
+            }
+        });
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            // Handle file chooser (Import)
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+                if (mFilePathCallback != null) {
+                    mFilePathCallback.onReceiveValue(null);
+                }
+                mFilePathCallback = filePathCallback;
+
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    startActivityForResult(intent, FILECHOOSER_RESULTCODE);
+                } catch (Exception e) {
+                    mFilePathCallback = null;
+                    return false;
+                }
+                return true;
+            }
+        });
+
+        // Add Javascript Interface for Clipboard and Download hooks
+        webView.addJavascriptInterface(new WebAppInterface(this), "AndroidApp");
+
+        // Inject script to override the default download/copy actions
+        webView.loadUrl("file:///android_asset/index.html");
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if(requestCode == FILECHOOSER_RESULTCODE) {
+            if (null == mFilePathCallback) return;
+            Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, intent);
+            mFilePathCallback.onReceiveValue(result);
+            mFilePathCallback = null;
+        } else {
+            super.onActivityResult(requestCode, resultCode, intent);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    public class WebAppInterface {
+        Context mContext;
+
+        WebAppInterface(Context c) {
+            mContext = c;
+        }
+
+        @JavascriptInterface
+        public void copyToClipboard(String text) {
+            ClipboardManager clipboard = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("Copied Text", text);
+            clipboard.setPrimaryClip(clip);
+        }
+
+        @JavascriptInterface
+        public void saveFile(String data, String filename, String mime) {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType(mime);
+            intent.putExtra(Intent.EXTRA_TITLE, filename);
+            intent.putExtra(Intent.EXTRA_TEXT, data);
+            mContext.startActivity(Intent.createChooser(intent, "Save Backup"));
+        }
+
+        @JavascriptInterface
+        public void authenticateBiometric() {
+            runOnUiThread(() -> {
+                BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                        .setTitle("Vault Unlock")
+                        .setSubtitle("Use your fingerprint to unlock")
+                        .setNegativeButtonText("Cancel")
+                        .build();
+
+                BiometricPrompt biometricPrompt = new BiometricPrompt(MainActivity.this,
+                        ContextCompat.getMainExecutor(MainActivity.this),
+                        new BiometricPrompt.AuthenticationCallback() {
+                            @Override
+                            public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                                super.onAuthenticationSucceeded(result);
+                                webView.post(() -> webView.evaluateJavascript("window.onBiometricSuccess()", null));
+                            }
+                        });
+
+                biometricPrompt.authenticate(promptInfo);
+            });
+        }
+
+        @JavascriptInterface
+        public String getInstalledApps() {
+            PackageManager pm = mContext.getPackageManager();
+            List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+            StringBuilder sb = new StringBuilder("[");
+            boolean first = true;
+            for (ApplicationInfo app : apps) {
+                // Filter out non-launchable system apps to keep list clean
+                if (pm.getLaunchIntentForPackage(app.packageName) != null) {
+                    if (!first) sb.append(",");
+                    String label = app.loadLabel(pm).toString().replace("\"", "\\\"");
+                    sb.append("{\"name\":\"").append(label).append("\",\"pkg\":\"").append(app.packageName).append("\"}");
+                    first = false;
+                }
+            }
+            sb.append("]");
+            return sb.toString();
+        }
+
+        @JavascriptInterface
+        public void syncAutofill(String json) {
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(json);
+                List<AutofillStore.Credential> list = new ArrayList<>();
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject obj = arr.getJSONObject(i);
+                    list.add(new AutofillStore.Credential(
+                            obj.getString("title"),
+                            obj.getString("username"),
+                            obj.getString("password"),
+                            obj.optString("pkg", "")
+                    ));
+                }
+                AutofillStore.setCredentials(list);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @JavascriptInterface
+        public void showToast(String message) {
+            Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
+        }
+    }
+}

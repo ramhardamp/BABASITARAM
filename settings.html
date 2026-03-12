@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault Settings | BABASITARAM</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --accent: #c084fc;
+      --accent2: #fbbf24;
+      --green: #22d3ee;
+      /* Cyan for a more premium look */
+      --red: #f43f5e;
+      --amber: #fbbf24;
+      --bg: #07070a;
+      --bg2: rgba(23, 23, 33, 0.7);
+      --bg3: rgba(30, 30, 42, 0.5);
+      --border: rgba(255, 255, 255, 0.05);
+      --border2: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --aura: linear-gradient(135deg, #c084fc 0%, #fbbf24 100%);
+      --glow: rgba(192, 132, 252, 0.15);
+      --font: 'Plus Jakarta Sans', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --bg2: rgba(255, 255, 255, 0.8);
+      --bg3: rgba(241, 245, 249, 0.5);
+      --border: rgba(0, 0, 0, 0.05);
+      --border2: rgba(0, 0, 0, 0.08);
+      --text: #0f172a;
+      --text2: #475569;
+      --text3: #94a3b8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Ambient background glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -10%;
+      right: -10%;
+      width: 40%;
+      height: 40%;
+      background: radial-gradient(circle, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 960px;
+      padding: 32px 20px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Header Styling */
+    .header-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding: 20px 24px;
+      background: var(--bg2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: var(--aura);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 15px var(--glow);
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: var(--aura);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Grid Layout */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Premium Card Design */
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 28px;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(192, 132, 252, 0.3);
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 20px rgba(192, 132, 252, 0.1);
+    }
+
+    .card-head {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .card-head i {
+      font-size: 18px;
+      opacity: 0.8;
+    }
+
+    .card-head-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .card-body {
+      padding: 12px;
+    }
+
+    /* Setting Row */
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 16px;
+      transition: background 0.2s ease;
+      margin-bottom: 4px;
+    }
+
+    .row:last-child {
+      margin-bottom: 0;
+    }
+
+    .row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .row-info {
+      flex: 1;
+      padding-right: 16px;
+    }
+
+    .row-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .row-desc {
+      font-size: 11px;
+      color: var(--text3);
+      line-height: 1.4;
+    }
+
+    /* Modern Toggles */
+    .toggle {
+      width: 48px;
+      height: 26px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 30px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.5, 1.5, 0.5, 1);
+    }
+
+    .toggle.on {
+      background: var(--aura);
+      border-color: transparent;
+      box-shadow: 0 0 15px rgba(192, 132, 252, 0.4);
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: all 0.4s cubic-bezier(0.5, 1.5, 0.5, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .toggle.on::after {
+      left: calc(100% - 21px);
+      transform: scale(1.1);
+    }
+
+    .toggle:active::after {
+      width: 24px;
+    }
+
+    /* Inputs & Selects */
+    select,
+    input[type="number"],
+    input[type="password"],
+    input[type="text"] {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 12px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    select:hover,
+    input:hover {
+      border-color: rgba(192, 132, 252, 0.3);
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    select {
+      cursor: pointer;
+      min-width: 100px;
+      text-align: right;
+    }
+
+    input[type="number"] {
+      width: 70px;
+      text-align: center;
+    }
+
+    /* Action Buttons */
+    .btn {
+      padding: 9px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--aura);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--glow);
+    }
+
+    .btn-secondary {
+      background: var(--bg3);
+      border-color: var(--border2);
+      color: var(--text2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    /* PIN Area Styling Upgrade */
+    .active-module {
+      position: relative;
+      background: radial-gradient(circle at top right, rgba(34, 211, 238, 0.1), rgba(0, 0, 0, 0.4)) !important;
+      border: 1px solid rgba(34, 211, 238, 0.3) !important;
+      text-align: center;
+      padding: 30px 24px !important;
+      overflow: hidden;
+    }
+
+    .module-glow {
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 100px;
+      height: 100px;
+      background: #22d3ee;
+      filter: blur(60px);
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .active-module .remove-btn {
+      border-color: rgba(244, 63, 94, 0.5);
+      color: #f43f5e;
+      background: rgba(244, 63, 94, 0.05);
+    }
+
+    .active-module .remove-btn:hover {
+      background: #f43f5e;
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
+    }
+
+    .guide-box {
+      border-color: rgba(251, 191, 36, 0.2) !important;
+      background: rgba(251, 191, 36, 0.02) !important;
+    }
+
+    .guide-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .guide-step span {
+      width: 20px;
+      height: 20px;
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .pin-inputs input {
+      flex: 1;
+      text-align: center;
+      letter-spacing: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      font-family: var(--mono);
+      background: rgba(0, 0, 0, 0.2) !important;
+      border-radius: 14px !important;
+      padding: 12px !important;
+    }
+
+    /* Sticky Footer */
+    .footer-bar {
+      position: sticky;
+      bottom: 20px;
+      margin-top: 40px;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+    }
+
+    .save-button {
+      padding: 18px 56px;
+      border-radius: 24px;
+      background: var(--aura);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 40px rgba(192, 132, 252, 0.4);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      animation: pulseSave 4s infinite;
+    }
+
+    @keyframes pulseSave {
+      0% {
+        box-shadow: 0 10px 40px rgba(192, 132, 252, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 10px 60px rgba(192, 132, 252, 0.6);
+      }
+
+      100% {
+        box-shadow: 0 10px 40px rgba(192, 132, 252, 0.4);
+      }
+    }
+
+    .save-button:hover {
+      transform: scale(1.05) translateY(-5px);
+      box-shadow: 0 20px 50px rgba(192, 132, 252, 0.5);
+    }
+
+    .save-button:active {
+      transform: scale(0.98);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg3);
+      border-radius: 4px;
+      border: 2px solid var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text3);
+    }
+
+    .badge-premium {
+      font-size: 9px;
+      background: var(--aura);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 6px;
+      vertical-align: middle;
+      font-weight: 800;
+    }
+  /* ── Toast notification — small bottom-center popup ── */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    padding: 10px 22px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    z-index: 99999;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    opacity: 1;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .toast.out {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+  }
+  </style>
+</head>
+
+<body data-theme="dark">
+  <div class="page-wrap">
+
+    <!-- Header Section -->
+    <header class="header-main">
+      <div class="brand">
+        <div class="brand-logo">✨</div>
+        <div class="brand-text">
+          <h1>BABASITARAM <span style="font-weight: 400; font-size: 14px; opacity: 0.6;">Settings</span></h1>
+          <p>Vault Ultimate v2050</p>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button id="themeBtn" class="btn btn-secondary">☀️ Light Mode</button>
+        <a href="passwords.html" class="btn btn-primary" style="text-decoration: none;">🔒 Passwords</a>
+      </div>
+    </header>
+
+    <div class="settings-grid">
+      <!-- LEFT COLUMN -->
+      <div class="column">
+
+        <!-- SECURITY CARD -->
+        <section class="card" style="margin-bottom: 20px;">
+          <div class="card-head">
+            <span style="font-size: 18px;">🛡️</span>
+            <span class="card-head-title">Security & Safety</span>
+          </div>
+          <div class="card-body">
+            <!-- Master Password -->
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">Master Password Change</div>
+                <div class="row-desc">Vault ka login password badalne ke liye</div>
+              </div>
+              <button class="btn btn-primary" id="changeMasterBtn">Change</button>
+            </div>
+
+            <!-- Auto-Start / Remember Me -->
+            <div class="row" style="flex-direction:column;align-items:flex-start;gap:10px">
+              <div style="display:flex;width:100%;align-items:center">
+                <div class="row-info" style="flex:1">
+                  <div class="row-label">🚀 Browser ke saath Auto-Start</div>
+                  <div class="row-desc">Chrome/Firefox khulne par automatically unlock hoga — password nahi maangega</div>
+                </div>
+                <div class="toggle" id="rememberToggle"></div>
+              </div>
+              <div id="rememberDurationRow" style="display:none;width:100%;padding:8px 12px;background:rgba(124,92,252,.06);border-radius:8px;border:1px solid rgba(124,92,252,.15)">
+                <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600">Kitne din tak auto-unlock kare:</div>
+                <select id="rememberDuration" style="width:100%;padding:6px 10px;background:#1c1c2e;border:1px solid rgba(124,92,252,.3);border-radius:6px;color:#ddd;font-size:12px">
+                  <option value="1">1 din</option>
+                  <option value="7" selected>7 din (default)</option>
+                  <option value="30">30 din</option>
+                  <option value="90">3 mahine</option>
+                  <option value="0">Hamesha (kabhi nahi expire)</option>
+                </select>
+                <div style="font-size:10px;color:#555;margin-top:6px">
+                  ⚠️ Sirf aapke personal device par enable karo. Shared computer par mat karo.
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto Lock -->
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">Auto-Lock Timer</div>
+                <div class="row-desc">Jab computer idle ho to apne aap lock ho jaye</div>
+              </div>
+              <select id="autoLockTime">
+                <option value="0">Never</option>
+                <option value="5">5 minutes</option>
+                <option value="10" selected>10 minutes</option>
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+              </select>
+            </div>
+
+            <!-- Block Weak -->
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">No Weak Passwords</div>
+                <div class="row-desc">Kamzor passwords ko save karne se rokega</div>
+              </div>
+              <div class="toggle on" id="blockWeakToggle"></div>
+            </div>
+
+            <!-- Suggestion -->
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">Smart Suggestion <span class="badge-premium">AI</span></div>
+                <div class="row-desc">Naye account banate waqt strong password suggest karega</div>
+              </div>
+              <div class="toggle on" id="passwordSuggestionToggle"></div>
+            </div>
+
+            <!-- Silent Auto-Save -->
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">🔕 Silent Auto-Save</div>
+                <div class="row-desc">Login hone par bina pooche automatically vault mein save — koi popup nahi</div>
+              </div>
+              <div class="toggle" id="silentAutoSaveToggle"></div>
+            </div>
+
+            <!-- Auto-Save Popup (Manual Prompt) -->
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">💬 Auto-Save Popup</div>
+                <div class="row-desc">Naya password detect hone par popup dikhaye aur pooche — sirf tab jab Silent Auto-Save OFF ho</div>
+              </div>
+              <div class="toggle on" id="autoPromptSaveToggle"></div>
+            </div>
+
+            <!-- PIN SETTINGS CONSOLIDATED -->
+            <div class="row" style="padding-bottom: 0;">
+              <div class="row-info">
+                <div class="row-label">🔢 Master PIN Lock</div>
+                <div class="row-desc">Password ki jagah quick PIN se kholo</div>
+              </div>
+              <div class="toggle" id="vaultPinToggle"></div>
+            </div>
+
+            <!-- PIN SETUP AREA -->
+            <div id="vaultPinSetupArea" class="pin-box" style="display: none;">
+              <div
+                style="font-size: 13px; font-weight: 800; color: #c084fc; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">✨</span> Setup Naya PIN
+              </div>
+              <div class="pin-inputs">
+                <input id="vaultPinNew" type="password" maxlength="4" placeholder="••••">
+                <input id="vaultPinConfirm" type="password" maxlength="4" placeholder="••••">
+              </div>
+              <div style="font-size: 11px; color: var(--text3); margin-bottom: 8px; font-weight: 600;">
+                Confirm karne ke liye Master Password:
+                <span style="color:#22d3a5; font-size:10px; display:block; margin-top:2px;">
+                  💡 Agar vault unlock hai to field blank chodein — auto fetch hoga
+                </span>
+              </div>
+              <input id="vaultPinMasterPw" type="password" placeholder="Blank chodein (auto) ya manually likhein"
+                style="width: 100%; letter-spacing: 0; margin-bottom: 16px; background: rgba(0,0,0,0.3);">
+              <button id="vaultPinSaveBtn" class="btn btn-primary"
+                style="width: 100%; justify-content: center; font-size: 14px; padding: 14px; border-radius: 16px;">💾
+                Save Master PIN</button>
+              <div id="vaultPinMsg"
+                style="font-size: 11px; text-align: center; margin-top: 12px; min-height: 16px; font-weight: 700;">
+              </div>
+            </div>
+
+            <!-- PIN ACTIVE AREA -->
+            <div id="vaultPinActiveArea" class="pin-box active-module" style="display: none;">
+              <div class="module-glow"></div>
+              <div style="font-size: 40px; margin-bottom: 16px; position: relative;">🔐</div>
+              <div
+                style="font-size: 15px; font-weight: 900; color: #22d3ee; margin-bottom: 4px; letter-spacing: 0.5px;">
+                Master PIN Lock Active</div>
+              <div style="font-size: 11px; color: var(--text3); margin-bottom: 24px; opacity: 0.8;">Ab aap PIN se vault
+                access kar sakte hain. Secure mode: Enabled</div>
+              <button id="vaultPinRemoveBtn" class="btn btn-secondary remove-btn"
+                style="width: 100%; justify-content: center; padding: 14px; border-radius: 16px;">
+                🗑️ PIN Lock Hatao
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="column">
+        <!-- BROWSER INTEGRATION -->
+        <section class="card" style="margin-bottom: 20px;">
+          <div class="card-head">
+            <span style="font-size: 18px;">🛸</span>
+            <span class="card-head-title">Browser Integration</span>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">Chrome Password Manager</div>
+                <div class="row-desc">Chrome ke default manager ko band karein</div>
+              </div>
+              <button class="btn btn-secondary" id="openChromePassBtn">Configure</button>
+            </div>
+
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">Import from Browser</div>
+                <div class="row-desc">Purane passwords CSV se import karein</div>
+              </div>
+              <button class="btn btn-secondary" id="chromeSyncBtn">Get Guide</button>
+            </div>
+
+            <div id="chromeImportGuide" class="pin-box guide-box" style="display: none;">
+              <div style="font-size: 13px; font-weight: 800; color: #fbbf24; margin-bottom: 12px;">Import Steps:</div>
+              <div style="font-size: 11px; color: var(--text2); display: flex; flex-direction: column; gap: 10px;">
+                <div class="guide-step"><span>1</span> Chrome Settings > Passwords mein jaayen</div>
+                <div class="guide-step"><span>2</span> Export Passwords par click karke CSV save karein</div>
+                <div class="guide-step"><span>3</span> Dashbaord se file upload karein</div>
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="openChromeExportBtn" class="btn btn-secondary" style="flex: 1; justify-content: center;">🔗
+                  Manager</button>
+                <button id="openVaultImportBtn" class="btn btn-primary" style="flex: 1; justify-content: center;">📤
+                  Dashboard</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT COLUMN -->
+        <div class="column">
+
+          <!-- AUTOFILL CARD -->
+          <section class="card" style="margin-bottom: 20px;">
+            <div class="card-head">
+              <span style="font-size: 18px;">⚡</span>
+              <span class="card-head-title">Smooth Autofill</span>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">Clipboard Auto-Clear</div>
+                  <div class="row-desc">Copy karne ke baad clipboard ko saaf karega</div>
+                </div>
+                <select id="clipboardClear">
+                  <option value="0">Never</option>
+                  <option value="15">15 seconds</option>
+                  <option value="30" selected>30 seconds</option>
+                  <option value="60">60 seconds</option>
+                </select>
+              </div>
+
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">Auto-Submit Forms</div>
+                  <div class="row-desc">Fill hone ke baad apne aap Login button dabayega</div>
+                </div>
+                <div class="toggle" id="autoSubmitToggle"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- BACKUP CARD -->
+          <section class="card" style="margin-bottom: 20px;">
+            <div class="card-head">
+              <span style="font-size: 18px;">☁️</span>
+              <span class="card-head-title">Data Backup</span>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">Encrypted Backups</div>
+                  <div class="row-desc">Backup files hamesha secure rahengi</div>
+                </div>
+                <div class="toggle on" id="encryptBackupToggle"></div>
+              </div>
+
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">Auto-Backup on Change</div>
+                  <div class="row-desc">Har badlav par automatically backup file banegi</div>
+                </div>
+                <div class="toggle" id="autoBackupToggle"></div>
+              </div>
+
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">Offline Backup</div>
+                  <div class="row-desc">Turant .vaultbak file download karein (vault-backup-latest.vaultbak)</div>
+                </div>
+                <button class="btn btn-secondary" id="manualBackupBtn">📥 Export Now</button>
+              </div>
+              <div class="row" id="lastBackupRow" style="display:none">
+                <div class="row-info">
+                  <div class="row-label" style="color:#22d3a5;font-size:12px">✅ Last Auto-Backup</div>
+                  <div class="row-desc" id="lastBackupTime">—</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- APPEARANCE CARD -->
+          <section class="card" style="margin-bottom: 20px;">
+            <div class="card-head">
+              <span style="font-size: 18px;">🎨</span>
+              <span class="card-head-title">Aesthetics</span>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">App Theme</div>
+                  <div class="row-desc">Sleek Dark ya Elegant Light mode</div>
+                </div>
+                <select id="themeSelect">
+                  <option value="dark" selected>🌙 Aura Dark</option>
+                  <option value="light">☀️ Snow Light</option>
+                  <option value="auto">🖥️ System Sync</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <!-- GENERATOR CARD -->
+          <section class="card">
+            <div class="card-head">
+              <span style="font-size: 18px;">🌀</span>
+              <span class="card-head-title">Smart Generator</span>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">Exclude Similar Characters</div>
+                  <div class="row-desc">0/O, 1/l/I jaise confused words nahi aayenge</div>
+                </div>
+                <div class="toggle" id="excludeSimilarToggle"></div>
+              </div>
+
+              <div class="row">
+                <div class="row-info">
+                  <div class="row-label">Default Complexity</div>
+                  <div class="row-desc">Genetered password kitne characters ka ho</div>
+                </div>
+                <input type="number" id="defaultLength" min="8" max="64" value="16">
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- SAVE BAR -->
+      <div class="footer-bar">
+        <button id="saveSettingsBtn" class="save-button">
+          💾 Save Vault Settings
+        </button>
+      </div>
+
+    </div>
+
+    <script src="src/crypto.js"></script>
+    <script src="src/vault-health.js"></script>
+    <script src="src/theme.js"></script>
+    <script src="settings.js"></script>
+</body>
+
+</html>
