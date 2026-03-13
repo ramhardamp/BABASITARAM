@@ -25,13 +25,11 @@ jobs:
         run: chmod +x ./AndroidProject/gradlew || echo "gradlew not found"
 
       - name: Build with Gradle
-        run: |
-          cd AndroidProject
-          if [ -f "gradlew" ]; then
-            ./gradlew assembleDebug
-          else
-            gradle assembleDebug
-          fi
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: '8.2'
+          arguments: assembleDebug
+          build-root-directory: AndroidProject
 
 
       - name: Upload APK
