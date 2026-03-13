@@ -286,7 +286,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 cursor.close();
             }
-            return new JSONArray(list).toString();
+            
+            // Build JSONArray manually for Android compatibility
+            JSONArray finalArr = new JSONArray();
+            for(JSONObject o : list) {
+                finalArr.put(o);
+            }
+            return finalArr.toString();
         }
 
         @JavascriptInterface

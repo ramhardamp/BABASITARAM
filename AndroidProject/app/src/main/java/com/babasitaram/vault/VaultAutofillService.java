@@ -5,12 +5,15 @@ import android.os.Build;
 import android.os.CancellationSignal;
 import android.service.autofill.AutofillService;
 import android.service.autofill.FillCallback;
+import android.service.autofill.FillResponse;
+import android.service.autofill.Dataset;
+import android.service.autofill.SaveInfo;
 import android.service.autofill.FillContext;
-import android.service.autofill.FillRequest;
-import android.service.autofill.SaveCallback;
-import android.service.autofill.SaveRequest;
+import android.view.autofill.AutofillId;
+import android.view.autofill.AutofillValue;
 import android.annotation.TargetApi;
 import android.widget.Toast;
+import android.widget.RemoteViews;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,19 +36,18 @@ public class VaultAutofillService extends AutofillService {
 
         if (match != null) {
             try {
-                android.service.autofill.FillResponse.Builder responseBuilder = new android.service.autofill.FillResponse.Builder();
-                android.service.autofill.Dataset.Builder datasetBuilder = new android.service.autofill.Dataset.Builder(
-                    new android.widget.RemoteViews(getPackageName(), android.R.layout.simple_list_item_1)
+                FillResponse.Builder responseBuilder = new FillResponse.Builder();
+                Dataset.Builder datasetBuilder = new Dataset.Builder(
+                    new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1)
                 );
 
-                List<android.view.autofill.AutofillId> foundIds = new ArrayList<>();
+                List<AutofillId> foundIds = new ArrayList<>();
                 traverseStructure(structure, datasetBuilder, match, foundIds);
 
                 if (!foundIds.isEmpty()) {
-                    // Create SaveInfo so users can update/save credentials
-                    android.view.autofill.AutofillId[] idArray = foundIds.toArray(new android.view.autofill.AutofillId[0]);
-                    responseBuilder.setSaveInfo(new android.service.autofill.SaveInfo.Builder(
-                        android.service.autofill.SaveInfo.SAVE_DATA_TYPE_PASSWORD, idArray).build());
+                    AutofillId[] idArray = foundIds.toArray(new AutofillId[0]);
+                    responseBuilder.setSaveInfo(new SaveInfo.Builder(
+                        SaveInfo.SAVE_DATA_TYPE_PASSWORD, idArray).build());
                     
                     responseBuilder.addDataset(datasetBuilder.build());
                     callback.onSuccess(responseBuilder.build());
@@ -54,16 +56,15 @@ public class VaultAutofillService extends AutofillService {
             } catch (Exception e) {}
         }
         
-        // If no match, we still want to offer SAVING if they type a new password
         try {
-            android.service.autofill.FillResponse.Builder responseBuilder = new android.service.autofill.FillResponse.Builder();
-            List<android.view.autofill.AutofillId> passwordIds = new ArrayList<>();
+            FillResponse.Builder responseBuilder = new FillResponse.Builder();
+            List<AutofillId> passwordIds = new ArrayList<>();
             findSaveableIds(structure, passwordIds);
             
             if (!passwordIds.isEmpty()) {
-                android.view.autofill.AutofillId[] idArray = passwordIds.toArray(new android.view.autofill.AutofillId[0]);
-                responseBuilder.setSaveInfo(new android.service.autofill.SaveInfo.Builder(
-                    android.service.autofill.SaveInfo.SAVE_DATA_TYPE_PASSWORD, idArray).build());
+                AutofillId[] idArray = passwordIds.toArray(new AutofillId[0]);
+                responseBuilder.setSaveInfo(new SaveInfo.Builder(
+                    SaveInfo.SAVE_DATA_TYPE_PASSWORD, idArray).build());
                 callback.onSuccess(responseBuilder.build());
             } else {
                 callback.onSuccess(null);
@@ -73,7 +74,7 @@ public class VaultAutofillService extends AutofillService {
         }
     }
 
-    private void findSaveableIds(AssistStructure.ViewNode node, List<android.view.autofill.AutofillId> ids) {
+    private void findSaveableIds(AssistStructure.ViewNode node, List<AutofillId> ids) {
         String id = node.getIdEntry();
         if (node.getAutofillId() != null && id != null) {
             if (id.contains("password") || id.contains("pass") || id.contains("user") || id.contains("email")) {
@@ -85,7 +86,7 @@ public class VaultAutofillService extends AutofillService {
         }
     }
 
-    private void traverseStructure(AssistStructure.ViewNode node, android.service.autofill.Dataset.Builder builder, AutofillStore.Credential cred, List<android.view.autofill.AutofillId> idsFound) {
+    private void traverseStructure(AssistStructure.ViewNode node, Dataset.Builder builder, AutofillStore.Credential cred, List<AutofillId> idsFound) {
         String id = node.getIdEntry();
         String hint = "";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -93,18 +94,16 @@ public class VaultAutofillService extends AutofillService {
             if (hints != null && hints.length > 0) hint = hints[0].toLowerCase();
         }
         
-        android.view.autofill.AutofillId autofillId = node.getAutofillId();
+        AutofillId autofillId = node.getAutofillId();
         if (autofillId != null) {
-            // Priority: Passwords
             if (id != null && (id.contains("password") || id.contains("pass") || id.contains("pwd")) || hint.contains("password")) {
-                builder.setValue(autofillId, android.view.autofill.AutofillValue.forText(cred.password), 
-                    new android.widget.RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
+                builder.setValue(autofillId, AutofillValue.forText(cred.password), 
+                    new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
                 idsFound.add(autofillId);
             }
-            // Priority: Usernames
             else if (id != null && (id.contains("username") || id.contains("user") || id.contains("email") || id.contains("login")) || hint.contains("username") || hint.contains("email")) {
-                builder.setValue(autofillId, android.view.autofill.AutofillValue.forText(cred.username),
-                    new android.widget.RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
+                builder.setValue(autofillId, AutofillValue.forText(cred.username),
+                    new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
                 idsFound.add(autofillId);
             }
         }
