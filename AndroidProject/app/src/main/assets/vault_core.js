@@ -8,18 +8,166 @@ let IS_UNLOCKED = false;
 let MASTER_PASS = null;
 let ENTRIES = [];
 let ACTIVE_TAB = 'all';
-let AUTO_LOCK_MINS = 5;
-let LAST_ACTIVITY_TIME = Date.now();
 let AUTO_LOCK_INTERVAL = null;
+let WIPE_PENDING = false;
 let APP_SETTINGS = {
     theme: 'dark',
+    lang: 'hi', // Default to Hindi
     autoLockMins: 5,
-    biometrics: false
+    biometrics: false,
+    autoBackup: false
 };
+
+const TRANSLATIONS = {
+    hi: {
+        setup_title: "Vault में आपका स्वागत है",
+        setup_sub: "अपना सुरक्षित ऑफलाइन मास्टर पासवर्ड बनाएं",
+        setup_create: "सुरक्षित Vault बनाएं",
+        lock_title: "Vault लॉक है",
+        lock_sub: "अनलॉक करने के लिए मास्टर पासवर्ड डालें",
+        lock_btn: "अनलॉक करें",
+        lock_reset: "Vault रिसेट करें (सब कुछ मिटा दें)",
+        nav_items: "सभी आइटम",
+        nav_favs: "पसंदीदा",
+        nav_audit: "ऑडिट",
+        nav_settings: "सेटिंग्स",
+        search_ph: "पासवर्ड खोजें...",
+        items_count: "सुरक्षित आइटम",
+        edit_new: "नया आइटम",
+        edit_edit: "आइटम संपादित करें",
+        label_title: "शीर्षक *",
+        label_user: "यूजरनेम / ईमेल",
+        label_mobile: "मोबाइल नंबर",
+        label_cat: "श्रेणी (Category)",
+        label_pass: "पासवर्ड *",
+        label_url: "वेबसाइट URL",
+        label_notes: "नोट्स",
+        btn_save: "💾 आइटम सुरक्षित करें",
+        settings_title: "⚙️ Vault सेटिंग्स",
+        settings_lang: "भाषा (Language)",
+        settings_sync: "Chrome एक्सटेंशन बैकअप",
+        settings_bio: "फिंगरप्रिंट अनलॉक",
+        settings_autobackup: "सेल्फ ऑटो-बैकअप (Silent)",
+        settings_default_autofill: "App को Default Autofill बनाएं",
+        settings_sync_contacts: "Phone Book से संपर्क जोड़ें",
+        settings_other: "अन्य विकल्प",
+        settings_export: "📤 सादा CSV एक्सपोर्ट करें",
+        settings_wipe: "⚠️ पूरा Vault सुरक्षित रूप से मिटाएं",
+        toast_saved: "Vault आइटम सुरक्षित हो गया!",
+        toast_deleted: "आइटम हटा दिया गया",
+        toast_copied: "क्लिपबोर्ड पर कॉपी किया गया!",
+        wipe_confirm_pw: "डेटा मिटाने के लिए अपना मास्टर पासवर्ड डालें:",
+        toast_wrong_pass: "गलत मास्टर पासवर्ड!",
+        toast_bio_verify: "सत्यापित करने के लिए फिंगरप्रिंट का उपयोग करें",
+        toast_verify_fail: "सत्यापन विफल रहा",
+        wipe_final_confirm: "चेतावनी! क्या आप वाकई सब कुछ मिटाना चाहते हैं? यह प्रक्रिया वापस नहीं ली जा सकती।"
+    },
+    en: {
+        setup_title: "Welcome to Vault",
+        setup_sub: "Create your secure offline master password",
+        setup_create: "Create Secure Vault",
+        lock_title: "Vault is Locked",
+        lock_sub: "Enter Master Password to unlock",
+        lock_btn: "Unlock Now",
+        lock_reset: "Reset Vault (Wipe Everything)",
+        nav_items: "All Items",
+        nav_favs: "Favorites",
+        nav_audit: "Audit",
+        nav_settings: "Settings",
+        search_ph: "Search passwords...",
+        items_count: "Secure Items",
+        edit_new: "New Entry",
+        edit_edit: "Edit Entry",
+        label_title: "Title *",
+        label_user: "Username / Email",
+        label_mobile: "Mobile Number",
+        label_cat: "Category",
+        label_pass: "Password *",
+        label_url: "Website URL",
+        label_notes: "Notes",
+        btn_save: "💾 Save Item",
+        settings_title: "⚙️ Vault Settings",
+        settings_lang: "Language",
+        settings_sync: "Chrome Extension Backup",
+        settings_bio: "Biometric Unlock",
+        settings_autobackup: "Silent Auto-Backup",
+        settings_default_autofill: "Set as Default Autofill",
+        settings_sync_contacts: "Sync Phone Book Contacts",
+        settings_other: "Other Options",
+        settings_export: "📤 Export Plain CSV",
+        settings_wipe: "⚠️ Wipe All Data Permanently",
+        toast_saved: "Vault entry saved!",
+        toast_deleted: "Item deleted",
+        toast_copied: "Copied to clipboard!",
+        wipe_confirm_pw: "Enter Master Password to wipe data:",
+        toast_wrong_pass: "Incorrect Master Password!",
+        toast_bio_verify: "Please use fingerprint to verify action",
+        toast_verify_fail: "Verification failed",
+        wipe_final_confirm: "WARNING! Are you sure you want to delete everything? This cannot be undone."
+    }
+};
+
+function i18n(key) {
+    const lang = APP_SETTINGS.lang || 'hi';
+    return TRANSLATIONS[lang][key] || key;
+}
+
+function updateUILanguage() {
+    // Dynamic updates for most common elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = i18n(key);
+        else el.textContent = i18n(key);
+    });
+}
 
 // --- Crypto Engine (1:1 with Chrome Extension `import-export.js`) ---
 const ENC = new TextEncoder();
 const DEC = new TextDecoder();
+let CLIP_TIMER = null;
+
+const VaultTOTP = (() => {
+    function base32Decode(encoded) {
+        const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        encoded = encoded.replace(/[\s\-]/g, '').toUpperCase().replace(/=+$/, '');
+        let bits = 0, value = 0;
+        const output = [];
+        for (const char of encoded) {
+            const idx = alpha.indexOf(char);
+            if (idx < 0) continue;
+            value = (value << 5) | idx;
+            bits += 5;
+            if (bits >= 8) {
+                output.push((value >>> (bits - 8)) & 0xff);
+                bits -= 8;
+            }
+        }
+        return new Uint8Array(output);
+    }
+    async function hotp(secretBytes, counter, digits = 6) {
+        const cb = new Uint8Array(8);
+        const dv = new DataView(cb.buffer);
+        dv.setUint32(0, Math.floor(counter / 0x100000000), false);
+        dv.setUint32(4, counter >>> 0, false);
+        const key = await crypto.subtle.importKey('raw', secretBytes,{ name: 'HMAC', hash: { name: 'SHA-1' } },false, ['sign']);
+        const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, cb));
+        const offset = sig[19] & 0xf;
+        const code = (((sig[offset] & 0x7f) << 24)|((sig[offset + 1] & 0xff) << 16)|((sig[offset + 2] & 0xff) << 8)|(sig[offset + 3] & 0xff));
+        return String(code % Math.pow(10, digits)).padStart(digits, '0');
+    }
+    async function generate(secret, digits = 6, period = 30) {
+        if (!secret || secret.length < 8) return null;
+        try {
+            const secretBytes = base32Decode(secret);
+            if (!secretBytes.length) return null;
+            const counter = Math.floor(Date.now() / 1000 / period);
+            const code = await hotp(secretBytes, counter, digits);
+            const remaining = period - (Math.floor(Date.now() / 1000) % period);
+            return { code, remaining, period };
+        } catch(e) { return null; }
+    }
+    return { generate };
+})();
 
 async function deriveKey(pw, salt, iterations = 600000) {
     const km = await crypto.subtle.importKey('raw', ENC.encode(pw), {name:'PBKDF2'}, false, ['deriveKey']);
@@ -102,8 +250,23 @@ function copyToClip(text) {
         window.AndroidApp.copyToClipboard(text);
         showToast('✓ Copied to clipboard natively!');
     } else {
-        navigator.clipboard.writeText(text).then(() => showToast('✓ Copied!'));
+        const input = document.createElement('textarea');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('✓ Copied!');
     }
+    
+    // Clipboard Auto-Clear Logic (30 seconds)
+    if(CLIP_TIMER) clearTimeout(CLIP_TIMER);
+    CLIP_TIMER = setTimeout(() => {
+        if (window.AndroidApp && window.AndroidApp.copyToClipboard) {
+            window.AndroidApp.copyToClipboard('');
+        }
+        showToast('Clipboard cleared for security');
+    }, 30000);
 }
 
 // --- Init & UI Flow ---
@@ -114,11 +277,14 @@ window.addEventListener('DOMContentLoaded', () => {
         APP_SETTINGS = JSON.parse(saved);
         AUTO_LOCK_MINS = APP_SETTINGS.autoLockMins || 5;
         if(APP_SETTINGS.theme === 'light') applyTheme('light');
+        updateUILanguage();
     }
 
     if(localStorage.getItem(HASH_KEY)) {
         document.getElementById('viewSetup').classList.remove('active');
         document.getElementById('viewLock').classList.add('active');
+        // Auto-trigger biometric if enabled
+        setTimeout(() => { if(APP_SETTINGS.biometrics) appBiometricUnlock(); }, 800);
     } else {
         document.getElementById('viewLock').classList.remove('active');
         document.getElementById('viewSetup').classList.add('active');
@@ -228,6 +394,8 @@ function appLockVault() {
     if(window.AndroidApp && window.AndroidApp.syncAutofill) {
         window.AndroidApp.syncAutofill('[]'); // Wipe autofill cache on lock
     }
+    // Auto-trigger biometric on manual lock too
+    setTimeout(() => { if(APP_SETTINGS.biometrics) appBiometricUnlock(); }, 500);
 }
 
 function callSyncAutofill() {
@@ -236,6 +404,7 @@ function callSyncAutofill() {
             title: e.title,
             username: e.username,
             password: e.password,
+            mobile: e.mobile || '',
             pkg: (e.url || '').startsWith('android://') ? e.url.replace('android://', '') : ''
         }));
         window.AndroidApp.syncAutofill(JSON.stringify(payload));
@@ -283,6 +452,13 @@ async function saveToDB() {
     const blob = await encryptData(JSON.stringify(ENTRIES), MASTER_PASS);
     localStorage.setItem(STORAGE_KEY, blob);
     callSyncAutofill();
+    
+    // Auto-Backup logic
+    if(APP_SETTINGS.autoBackup && window.AndroidApp && window.AndroidApp.autoBackupNative) {
+        const date = new Date().toISOString().slice(0, 10);
+        window.AndroidApp.autoBackupNative(blob, `vault-autobackup-${date}.vaultbak`);
+    }
+    
     appRefreshUI();
 }
 
@@ -341,7 +517,7 @@ function appRenderList(query = '') {
         );
     }
     
-    document.getElementById('mainHeaderSub').textContent = `${ENTRIES.length} Secure Items`;
+    document.getElementById('mainHeaderSub').textContent = `${ENTRIES.length} ${i18n('items_count')}`;
     
     if(!base.length) {
         list.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><div class="empty-text">No passwords found here.</div></div>`;
@@ -351,12 +527,15 @@ function appRenderList(query = '') {
     list.innerHTML = '';
     base.forEach(e => {
         const letter = (e.title || e.url || 'V').charAt(0).toUpperCase();
+        const displayTitle = highlightText(escapeHTML(e.title || 'Untitled'), query);
+        const displayUser = highlightText(escapeHTML(e.username || 'No Username'), query);
+        
         list.innerHTML += `
             <div class="item-card" onclick="appReadItem('${e.id}')">
                 <div class="item-avatar">${letter}</div>
                 <div class="item-details">
-                    <div class="item-title">${escapeHTML(e.title || 'Untitled')}</div>
-                    <div class="item-sub">${escapeHTML(e.username || 'No Username')}</div>
+                    <div class="item-title">${displayTitle}</div>
+                    <div class="item-sub">${displayUser}</div>
                 </div>
                 <div class="item-actions">
                     <button class="action-icon" onclick="event.stopPropagation(); copyToClip('${escapeHTML(e.username)}')">👤</button>
@@ -365,6 +544,12 @@ function appRenderList(query = '') {
             </div>
         `;
     });
+}
+
+function highlightText(text, q) {
+    if(!q) return text;
+    const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<mark style="background:var(--brand-secondary);color:white;border-radius:2px;padding:0 2px">$1</mark>');
 }
 
 function appRefreshUI() {
@@ -389,6 +574,7 @@ function appSaveItem() {
         username: u,
         mobile: document.getElementById('editMobile').value || '',
         password: p,
+        totpSecret: document.getElementById('editTotp').value || '',
         category: document.getElementById('editCategory').value || 'Other',
         url: document.getElementById('editUrl').value,
         notes: document.getElementById('editNotes').value,
@@ -461,9 +647,12 @@ function appHandleFileSelected(input) {
                 if(data.entries && Array.isArray(data.entries)) {
                     mergeEntries(data.entries);
                     showToast(`✅ ${data.entries.length} आइटम बैकअप से इम्पोर्ट किए गए`);
+                } else {
+                    showToast('❌ फाइल में डेटा सही फॉर्मेट में नहीं है।', true);
                 }
             } catch(e) {
-                showToast('❌ डिक्रिप्शन विफल।', true);
+                console.error('Import Error:', e);
+                showToast(`❌ डिक्रिप्शन विफल: ${e.message || 'गलत पासवर्ड'}`, true);
             }
         } else if(file.name.endsWith('.csv')) {
             try {
@@ -488,9 +677,15 @@ function checkBioVisibility() {
     } else {
         row.style.display = 'none';
     }
+
+    const langSelect = document.getElementById('settingLang');
+    if(langSelect) langSelect.value = APP_SETTINGS.lang || 'hi';
     
     const bioToggle = document.getElementById('settingBio');
     if(bioToggle) bioToggle.checked = APP_SETTINGS.biometrics;
+
+    const backupToggle = document.getElementById('settingAutoBackup');
+    if(backupToggle) backupToggle.checked = APP_SETTINGS.autoBackup || false;
     
     const lockSelect = document.getElementById('settingAutoLock');
     if(lockSelect) lockSelect.value = APP_SETTINGS.autoLockMins || 5;
@@ -505,7 +700,9 @@ async function appBiometricUnlock() {
 
 // Internal callback from Android
 window.onBiometricSuccess = async () => {
-    if(localStorage.getItem('v_bio_key') && localStorage.getItem('v_temp_mp')) {
+    if (WIPE_PENDING) {
+        executeWipe();
+    } else if (localStorage.getItem('v_bio_key') && localStorage.getItem('v_temp_mp')) {
         appUnlockVault(true); // Internal override
     }
 }
@@ -520,67 +717,81 @@ function appHandleCSVSelected(input) {
     if(!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
-        const text = e.target.result;
-        const items = parseCSV(text);
-        if(items.length > 0) {
-            mergeEntries(items);
-            showToast(`${items.length} पासवर्ड्स का डेटा मिला!`);
-        } else {
-            showToast('CSV में कोई डेटा नहीं मिला', true);
+        try {
+            const rows = parseCSV(e.target.result);
+            const items = processCSVData(rows);
+            if(items.length > 0) {
+                mergeEntries(items);
+            } else {
+                showToast('CSV में कोई मान्य डेटा नहीं मिला', true);
+            }
+        } catch(err) {
+            showToast('CSV पढ़ने में एरर: ' + err.message, true);
         }
     };
     reader.readAsText(file);
+    input.value = ''; // Reset for next selection
 }
 
 
 function parseCSV(text) {
-    const lines = text.split(/\r?\n/);
-    if(lines.length < 2) return [];
-    
-    const header = lines[0].toLowerCase();
-    const rows = lines.slice(1).filter(l => l.trim());
-    const items = [];
+    const lines = [];
+    let cur = '', inQuote = false, row = [];
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i], next = text[i + 1];
+        if (ch === '"') {
+            if (inQuote && next === '"') { cur += '"'; i++; }
+            else inQuote = !inQuote;
+        } else if (ch === ',' && !inQuote) {
+            row.push(cur.trim()); cur = '';
+        } else if ((ch === '\n' || ch === '\r') && !inQuote) {
+            if (ch === '\r' && next === '\n') i++;
+            row.push(cur.trim()); cur = '';
+            if (row.some(c => c !== '')) lines.push(row);
+            row = [];
+        } else { cur += ch; }
+    }
+    if (cur || row.length) { row.push(cur.trim()); if (row.some(c => c !== '')) lines.push(row); }
+    return lines;
+}
 
-    rows.forEach(line => {
-        // Simple CSV split (not handling quotes for now, keeping it basic for speed)
-        const parts = line.split(',').map(p => p.replace(/^"|"$/g, '').trim());
-        
-        if(header.includes('username') && header.includes('password')) {
-            // Generic / Chrome / Bitwarden common fields
-            let title='', url='', user='', pass='', notes='', mobile='';
-            
-            if(header.startsWith('name,url,username,password')) { // Chrome
-                [title, url, user, pass] = parts;
-            } else if(header.includes('login_username')) { // Bitwarden
-                // folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password
-                title = parts[3]; notes = parts[4]; url = parts[7]; user = parts[8]; pass = parts[9];
-            } else {
-                // Heuristic mapping
-                title = parts[0]; url = parts[1]; user = parts[2]; pass = parts[3];
-            }
-            
-            if(pass) {
-                items.push({
-                    title: title || url || 'Untitled',
-                    url: url,
-                    username: user,
-                    password: pass,
-                    notes: notes,
-                    category: 'Other'
-                });
-            }
-        }
-    });
-    return items;
+function processCSVData(rows) {
+    if (!rows.length) return [];
+    const header = rows[0].map(h => h.toLowerCase().trim());
+    const findCol = (...names) => { for (const n of names) { const i = header.findIndex(h => h === n || h.includes(n)); if (i !== -1) return i; } return -1; };
+    
+    const iTitle = findCol('name', 'title', 'site');
+    const iUrl = findCol('url', 'website', 'uri');
+    const iUser = findCol('username', 'user', 'login', 'email');
+    const iPass = findCol('password', 'pass', 'pwd');
+    const iNotes = findCol('notes', 'note', 'comment');
+    
+    const results = [];
+    for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        const get = idx => (idx >= 0 && r[idx]) ? r[idx] : '';
+        const password = get(iPass);
+        if (!password) continue;
+        results.push({
+            title: get(iTitle) || normUrl(get(iUrl)) || 'Imported CSV',
+            url: get(iUrl),
+            username: get(iUser),
+            password: password,
+            notes: get(iNotes),
+            category: 'Other'
+        });
+    }
+    return results;
 }
 
 async function appActionExportBackup() {
     const date = new Date().toISOString().slice(0, 10);
     const pw = prompt('इस .vaultbak पेलोड को एन्क्रिप्ट करने के लिए एक पासवर्ड सेट करें (इसे रिस्टोर करने के लिए आपको इसकी आवश्यकता होगी):');
     if(!pw) return showToast('एक्सपोर्ट रद्द कर दिया गया', true);
+    if(pw.length < 6) return showToast('पासवर्ड कम से कम 6 अक्षर का होना चाहिए', true);
     
     const payload = JSON.stringify({
-        version: '1.0',
+        version: '1.1',
         app: 'Vault',
         exportDate: new Date().toISOString(),
         count: ENTRIES.length,
@@ -588,8 +799,16 @@ async function appActionExportBackup() {
     });
     
     try {
-        const b64 = await encryptData(payload, pw);
-        downloadViaBridge(b64, `vault-backup-${date}.vaultbak`, 'application/octet-stream');
+        const encrypted = await encryptData(payload, pw);
+        // User BUG-02 Fix: Use the wrapper format the Chrome extension expects
+        const wrapper = {
+            vault_backup: true,
+            data: encrypted,
+            v: 2, // Version indicator
+            exportDate: new Date().toISOString()
+        };
+        const finalB64 = btoa(JSON.stringify(wrapper));
+        downloadViaBridge(finalB64, `vault-backup-${date}.vaultbak`, 'application/octet-stream');
         uiCloseAllSheets();
         showToast('📤 .vaultbak एक्सपोर्ट हो गया!');
     } catch(e) {
@@ -597,38 +816,121 @@ async function appActionExportBackup() {
     }
 }
 
+async function appActionExportCSV() {
+    if(!ENTRIES.length) return showToast('एक्सपोर्ट करने के लिए कोई डेटा नहीं है', true);
+    
+    const date = new Date().toISOString().slice(0, 10);
+    const header = 'name,url,username,mobile,password,notes,category,strength,starred,createdAt,updatedAt';
+    const csvContent = ENTRIES.map(e => [
+        `"${(e.title||'').replace(/"/g, '""')}"`,
+        `"${(e.url||'').replace(/"/g, '""')}"`,
+        `"${(e.username||'').replace(/"/g, '""')}"`,
+        `"${(e.mobile||'').replace(/"/g, '""')}"`,
+        `"${(e.password||'').replace(/"/g, '""')}"`,
+        `"${(e.notes||'').replace(/"/g, '""')}"`,
+        `"${(e.category||'Other').replace(/"/g, '""')}"`,
+        `"${e.strength||'weak'}"`,
+        e.starred ? '1' : '0',
+        e.createdAt || Date.now(),
+        e.updatedAt || Date.now()
+    ].join(',')).join('\n');
+    
+    const finalCSV = header + '\n' + csvContent;
+    downloadViaBridge(finalCSV, `vault-passwords-${date}.csv`, 'text/csv');
+    uiCloseAllSheets();
+    showToast('📤 CSV एक्सपोर्ट हो गया!');
+}
+
 function mergeEntries(newEntries) {
     let added = 0;
+    let skipped = 0;
     newEntries.forEach(n => {
-        // Match extension's de-dupe logic: normalized URL + username + mobile
         const nUrl = normUrl(n.url);
         const dup = ENTRIES.find(x => 
             normUrl(x.url) === nUrl && 
-            (x.username || '').toLowerCase() === (n.username || '').toLowerCase() &&
-            (x.mobile || '').replace(/\D/g, '') === (n.mobile || '').replace(/\D/g, '')
+            (x.username || '').toLowerCase() === (n.username || '').toLowerCase()
         );
         if(!dup) {
-            if(!n.id) n.id = 'v_' + Math.random().toString(36).substr(2);
-            ENTRIES.push(n);
+            const now = Date.now();
+            ENTRIES.push({
+                ...n,
+                id: 'v_' + Math.random().toString(36).substr(2),
+                strength: checkStrength(n.password),
+                starred: false,
+                createdAt: now,
+                updatedAt: now
+            });
             added++;
+        } else {
+            skipped++;
         }
     });
     saveToDB();
+    if(added > 0) showToast(`${added} नए आइटम जोड़े गए${skipped > 0 ? `, ${skipped} डूप्लिकेट छोड़े गए` : ''}`);
 }
 
 function normUrl(u) {
     try {
         if (!u) return '';
-        if (!u.startsWith('http')) u = 'https://' + u;
+        if (!u.startsWith('http') && !u.startsWith('android://')) u = 'https://' + u;
+        if (u.startsWith('android://')) return u.toLowerCase();
         return new URL(u).hostname.replace(/^www\./, '').toLowerCase();
     } catch { return (u || '').toLowerCase().replace(/^www\./, ''); }
 }
 
-function appActionWipe() {
-    if(confirm('DANGER! This will delete ALL PASSWORDS on this device. Are you sure?')) {
+async function appSyncContacts() {
+    if(!window.AndroidApp || !window.AndroidApp.getSystemContacts) return;
+    const json = window.AndroidApp.getSystemContacts();
+    if(json === 'PERMISSION_DENIED') {
+        showToast('संपर्क अनुमति की आवश्यकता है', true);
+        return;
+    }
+    try {
+        const contacts = JSON.parse(json);
+        if(contacts.length > 0) {
+            mergeEntries(contacts);
+        } else {
+            showToast('कोई नया संपर्क नहीं मिला');
+        }
+    } catch(e) { showToast('Sync विफल: ' + e.message, true); }
+}
+
+function appSetDefaultAutofill() {
+    if(window.AndroidApp && window.AndroidApp.openAutofillSettings) {
+        window.AndroidApp.openAutofillSettings();
+    }
+}
+
+async function appActionWipe() {
+    const pw = prompt(i18n('wipe_confirm_pw'));
+    if (!pw) return;
+
+    try {
+        const hash = localStorage.getItem(HASH_KEY);
+        const canary = await decryptData(hash, pw);
+        if (canary !== '__VAULT_CANARY__') {
+            showToast(i18n('toast_wrong_pass'), true);
+            return;
+        }
+
+        if (APP_SETTINGS.biometrics) {
+            WIPE_PENDING = true;
+            showToast(i18n('toast_bio_verify'));
+            appBiometricUnlock();
+        } else {
+            executeWipe();
+        }
+    } catch (e) {
+        showToast(i18n('toast_verify_fail'), true);
+    }
+}
+
+function executeWipe() {
+    if (confirm(i18n('wipe_final_confirm'))) {
         localStorage.clear();
         location.reload();
     }
+    WIPE_PENDING = false;
 }
 
 // --- UI Sheets & Helpers ---

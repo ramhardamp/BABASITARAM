@@ -13,6 +13,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Base64;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
+import java.io.ByteArrayOutputStream;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -40,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
         
         webView = new WebView(this);
         setContentView(webView);
+
+        // Security: Prevent Screen Capture & Shifting to Recents preview
+        getWindow().setFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE, 
+                           android.view.WindowManager.LayoutParams.FLAG_SECURE);
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -138,6 +148,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void autoBackupNative(String data, String filename) {
+            try {
+                java.io.File folder = new java.io.File(mContext.getExternalFilesDir(android.os.Environment.DIRECTORY_DOCUMENTS), "VaultBackups");
+                if (!folder.exists()) folder.mkdirs();
+                java.io.File file = new java.io.File(folder, filename);
+                java.io.FileWriter writer = new java.io.FileWriter(file);
+                writer.write(data);
+                writer.close();
+                // showToast("Auto-backup saved to Documents folder");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @JavascriptInterface
         public void authenticateBiometric() {
             runOnUiThread(() -> {
                 BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
@@ -167,16 +192,46 @@ public class MainActivity extends AppCompatActivity {
             StringBuilder sb = new StringBuilder("[");
             boolean first = true;
             for (ApplicationInfo app : apps) {
-                // Filter out non-launchable system apps to keep list clean
+                // Filter: Only show apps that can be launched by the user (avoids system clutter)
                 if (pm.getLaunchIntentForPackage(app.packageName) != null) {
-                    if (!first) sb.append(",");
-                    String label = app.loadLabel(pm).toString().replace("\"", "\\\"");
-                    sb.append("{\"name\":\"").append(label).append("\",\"pkg\":\"").append(app.packageName).append("\"}");
-                    first = false;
+                    try {
+                        if (!first) sb.append(",");
+                        String label = app.loadLabel(pm).toString().replace("\"", "\\\"");
+                        
+                        // Get Icon as Base64
+                        Drawable icon = app.loadIcon(pm);
+                        String iconBase64 = drawableToBase64(icon);
+                        
+                        sb.append("{")
+                          .append("\"name\":\"").append(label).append("\",")
+                          .append("\"pkg\":\"").append(app.packageName).append("\",")
+                          .append("\"icon\":\"").append(iconBase64).append("\"")
+                          .append("}");
+                        first = false;
+                    } catch (Exception e) { e.printStackTrace(); }
                 }
             }
             sb.append("]");
             return sb.toString();
+        }
+
+        private String drawableToBase64(Drawable drawable) {
+            Bitmap bitmap;
+            if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+                bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+            } else {
+                bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            }
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            
+            // Resize for WebView performance (usually 64x64 is enough)
+            Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 64, 64, true);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            scaled.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+            return "data:image/png;base64," + Base64.encodeToString(byteArray, Base64.NO_WRAP);
         }
 
         @JavascriptInterface
@@ -190,12 +245,59 @@ public class MainActivity extends AppCompatActivity {
                             obj.getString("title"),
                             obj.getString("username"),
                             obj.getString("password"),
+                            obj.optString("mobile", ""),
                             obj.optString("pkg", "")
                     ));
                 }
                 AutofillStore.setCredentials(list);
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+        }
+
+        @JavascriptInterface
+        public String getSystemContacts() {
+            if (ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                return "PERMISSION_DENIED";
+            }
+            List<org.json.JSONObject> list = new ArrayList<>();
+            android.database.Cursor cursor = mContext.getContentResolver().query(
+                android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                new String[]{
+                    android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER
+                }, null, null, null);
+            
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    try {
+                        String name = cursor.getString(0);
+                        String number = cursor.getString(1);
+                        org.json.JSONObject obj = new org.json.JSONObject();
+                        obj.put("title", name);
+                        obj.put("mobile", number);
+                        obj.put("category", "Contacts");
+                        list.add(obj);
+                    } catch (Exception e) {}
+                }
+                cursor.close();
+            }
+            return new org.json.JSONArray(list).toString();
+        }
+
+        @JavascriptInterface
+        public void openAutofillSettings() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE);
+                intent.setData(Uri.parse("package:com.babasitaram.vault"));
+                try {
+                    mContext.startActivity(intent);
+                } catch (Exception e) {
+                    // Fallback for some ROMs
+                    mContext.startActivity(new Intent(Settings.ACTION_AUTOFILL_SETTINGS));
+                }
+            } else {
+                showToast("Autofill is only available on Android 8.0+");
             }
         }
 

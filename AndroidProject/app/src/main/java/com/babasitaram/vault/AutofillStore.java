@@ -8,10 +8,11 @@ public class AutofillStore {
         public String title;
         public String username;
         public String password;
+        public String mobile;
         public String pkg;
         
-        public Credential(String t, String u, String p, String k) {
-            title = t; username = u; password = p; pkg = k;
+        public Credential(String t, String u, String p, String m, String k) {
+            title = t; username = u; password = p; mobile = m; pkg = k;
         }
     }
 

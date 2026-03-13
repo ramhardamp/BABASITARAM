@@ -280,10 +280,20 @@
         
         .item-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .action-icon {
-            width: 36px; height: 36px;
-            background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            width: 40px; height: 40px;
+            background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md);
             display: flex; align-items: center; justify-content: center;
-            color: var(--text-secondary); cursor: pointer;
+            color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+        }
+        .action-icon:active { background: var(--bg-elevated); transform: scale(0.9); }
+        
+        /* App Selector Icons */
+        .app-icon-img {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            object-fit: contain;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
         }
         
         .badge {
@@ -396,8 +406,8 @@
             <div class="auth-card">
                 <div class="auth-icon" style="background:none;box-shadow:none;"><img src="images/logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg);"></div>
                 <div style="font-size: 14px; color: var(--brand-secondary); font-weight: 600; margin-bottom: 8px;">श्री संत श्री रामचंद्र दास जी की कृपा</div>
-                <h1 class="title">Vault में आपका स्वागत है</h1>
-                <p class="subtitle">अपना सुरक्षित ऑफलाइन मास्टर पासवर्ड बनाएं</p>
+                <h1 class="title" data-i18n="setup_title">Vault में आपका स्वागत है</h1>
+                <p class="subtitle" data-i18n="setup_sub">अपना सुरक्षित ऑफलाइन मास्टर पासवर्ड बनाएं</p>
                 
                 <div class="input-group">
                     <input type="password" id="setupNewPin" class="input-field" placeholder="मास्टर पासवर्ड (कम से कम 8 अक्षर)">
@@ -407,7 +417,7 @@
                 </div>
                 <div id="setupError" class="error-message"></div>
                 
-                <button class="btn btn-primary" onclick="appCreateVault()">सुरक्षित Vault बनाएं</button>
+                <button class="btn btn-primary" data-i18n="setup_create" onclick="appCreateVault()">सुरक्षित Vault बनाएं</button>
             </div>
         </div>
     </div>
@@ -418,15 +428,15 @@
             <div class="auth-card">
                 <div class="auth-icon" style="background:none;box-shadow:none;"><img src="images/logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg);"></div>
                 <div style="font-size: 14px; color: var(--brand-secondary); font-weight: 600; margin-bottom: 8px;">श्री संत श्री रामचंद्र दास जी की कृपा</div>
-                <h1 class="title">Vault लॉक है</h1>
-                <p class="subtitle">अनलॉक करने के लिए मास्टर पासवर्ड डालें</p>
+                <h1 class="title" data-i18n="lock_title">Vault लॉक है</h1>
+                <p class="subtitle" data-i18n="lock_sub">अनलॉक करने के लिए मास्टर पासवर्ड डालें</p>
                 
                 <div class="input-group">
                     <input type="password" id="lockPin" class="input-field" placeholder="मास्टर पासवर्ड" onkeypress="if(event.key==='Enter')appUnlockVault()">
                 </div>
                 <div id="lockError" class="error-message"></div>
                 
-                <button class="btn btn-primary" onclick="appUnlockVault()">अनलॉक करें</button>
+                <button class="btn btn-primary" data-i18n="lock_btn" onclick="appUnlockVault()">अनलॉक करें</button>
                 
                 <div id="bioUnlockRow" style="margin-top: 20px; display: none;">
                     <button class="icon-btn" onclick="appBiometricUnlock()" style="width: 56px; height: 56px; margin: 0 auto; border-radius: 28px; font-size: 28px; background: var(--bg-surface);">☝️</button>
@@ -434,7 +444,7 @@
                 </div>
 
                 <div style="margin-top: 24px; text-align: center; font-size: 13px;">
-                    <button onclick="document.getElementById('viewLock').classList.remove('active'); document.getElementById('viewSetup').classList.add('active');" style="background:none;border:none;color:var(--text-muted);cursor:pointer;text-decoration:underline;">Vault रिसेट करें (सब कुछ मिटा दें)</button>
+                    <button data-i18n="lock_reset" onclick="document.getElementById('viewLock').classList.remove('active'); document.getElementById('viewSetup').classList.add('active');" style="background:none;border:none;color:var(--text-muted);cursor:pointer;text-decoration:underline;">Vault रिसेट करें (सब कुछ मिटा दें)</button>
                 </div>
             </div>
         </div>
@@ -461,10 +471,12 @@
         <!-- Category Tabs -->
         <div style="padding: 12px 20px 0; background: var(--bg-base); display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
             <button class="badge" style="background:var(--brand-primary); color:white; border:none; padding:6px 14px; cursor:pointer;" onclick="appSetTab('all', this)">सब</button>
-            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Social', this)">सोशल</button>
             <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Banking', this)">बैंकिंग</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Cards', this)">कार्ड्स</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Contacts', this)">संपर्क (Contacts)</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Government', this)">Govt ID (आधार)</button>
+            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Social', this)">सोशल</button>
             <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Work', this)">ऑफिस</button>
-            <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Shopping', this)">शॉपिंग</button>
             <button class="badge" style="background:var(--bg-surface); color:var(--text-secondary); border:1px solid var(--border); padding:6px 14px; cursor:pointer;" onclick="appSetTab('cat_Other', this)">अन्य</button>
         </div>
 
@@ -486,10 +498,10 @@
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-item active" onclick="appSetTab('all', this)"><div class="nav-icon">🔐</div>सभी आइटम</button>
-            <button class="nav-item" onclick="appSetTab('fav', this)"><div class="nav-icon">⭐</div>पसंदीदा</button>
-            <button class="nav-item" onclick="openAuditSheet()"><div class="nav-icon">🛡️</div>ऑडिट</button>
-            <button class="nav-item" onclick="uiOpenSheet('sheetSettings')"><div class="nav-icon">⚙️</div>सेटिंग्स</button>
+            <button class="nav-item active" onclick="appSetTab('all', this)"><div class="nav-icon">🔐</div><span data-i18n="nav_items">सभी आइटम</span></button>
+            <button class="nav-item" onclick="appSetTab('fav', this)"><div class="nav-icon">⭐</div><span data-i18n="nav_favs">पसंदीदा</span></button>
+            <button class="nav-item" onclick="openAuditSheet()"><div class="nav-icon">🛡️</div><span data-i18n="nav_audit">ऑडिट</span></button>
+            <button class="nav-item" onclick="uiOpenSheet('sheetSettings')"><div class="nav-icon">⚙️</div><span data-i18n="nav_settings">सेटिंग्स</span></button>
         </nav>
     </div>
 
@@ -539,9 +551,11 @@
                 <select id="editCategory" class="input-field">
                     <option value="Other">अन्य (Other)</option>
                     <option value="Social">सोशल मीडिया</option>
-                    <option value="Banking">बैंकिंग और फाइनेंस</option>
+                    <option value="Banking">बैंकिंग (Banking)</option>
+                    <option value="Cards">कार्ड्स (Cards)</option>
+                    <option value="Government">सरकारी ID / आधार</option>
+                    <option value="Contacts">संपर्क (Contacts)</option>
                     <option value="Work">ऑफिस / पर्सनल</option>
-                    <option value="Shopping">शॉपिंग</option>
                 </select>
             </div>
             <div class="input-group">
@@ -557,6 +571,10 @@
                     <div class="strength-bar" id="strM3"></div>
                     <div class="strength-bar" id="strM4"></div>
                 </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">TOTP Secret (2FA)</label>
+                <input type="text" id="editTotp" class="input-field" placeholder="JBSWY3DPEHPK3PXP">
             </div>
             <div class="input-group">
                 <label class="input-label">वेबसाइट URL</label>
@@ -576,12 +594,19 @@
     <div class="sheet" id="sheetSettings">
         <div class="sheet-handle"></div>
         <div class="sheet-header">
-            <h2 class="sheet-title">⚙️ Vault सेटिंग्स</h2>
+            <h2 class="sheet-title" data-i18n="settings_title">⚙️ Vault सेटिंग्स</h2>
             <button class="btn-close" onclick="uiCloseAllSheets()">✕</button>
         </div>
         <div class="sheet-body">
             <div style="margin-bottom: 32px">
-                <h3 class="input-label">Chrome एक्सटेंशन के साथ सिंक करें</h3>
+                <h3 class="input-label" data-i18n="settings_lang">भाषा (Language)</h3>
+                <select id="settingLang" class="input-field" onchange="APP_SETTINGS.lang=this.value;saveSettings();updateUILanguage();appRefreshUI();">
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 32px">
+                <h3 class="input-label" data-i18n="settings_sync">Chrome एक्सटेंशन के साथ सिंक करें</h3>
                 <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">मोबाइल ऐप और Chrome एक्सटेंशन के बीच परफेक्ट सिंक के लिए `.vaultbak` फाइलें बनाएं।</p>
                 <button class="btn btn-primary" onclick="appActionExportBackup()" style="margin-top:0">📤 Chrome बैकअप एक्सपोर्ट करें (.vaultbak)</button>
                 
@@ -602,16 +627,32 @@
                         <option value="30">30 मिनट</option>
                     </select>
                 </div>
-                <div class="input-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                    <label class="input-label" style="margin: 0; text-transform: none;">फिंगरप्रिंट अनलॉक (Biometric)</label>
+                <div class="input-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 12px;">
+                    <label class="input-label" data-i18n="settings_bio" style="margin: 0; text-transform: none;">फिंगरप्रिंट अनलॉक (Biometric)</label>
                     <input type="checkbox" id="settingBio" style="width: 20px; height: 20px; accent-color: var(--brand-primary);" onchange="APP_SETTINGS.biometrics=this.checked;saveSettings();checkBioVisibility();">
+                </div>
+                <div class="input-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <label class="input-label" data-i18n="settings_autobackup" style="margin: 0; text-transform: none;">सेल्फ ऑटो-बैकअप (Silent)</label>
+                    <input type="checkbox" id="settingAutoBackup" style="width: 20px; height: 20px; accent-color: var(--brand-primary);" onchange="APP_SETTINGS.autoBackup=this.checked;saveSettings();">
                 </div>
             </div>
             
             <div style="margin-bottom: 32px">
-                <h3 class="input-label">अन्य विकल्प</h3>
-                <button class="btn btn-secondary" onclick="appActionExportCSV()" style="margin-top:0">📤 सादा CSV एक्सपोर्ट करें (अन-एन्क्रिप्टेड)</button>
-                <button class="btn btn-danger" onclick="appActionWipe()" style="margin-top:12px">⚠️ पूरा Vault सुरक्षित रूप से मिटाएं</button>
+                <h3 class="input-label" data-i18n="settings_other">अन्य विकल्प</h3>
+                <div style="display:flex; flex-direction:column; gap:12px">
+                    <button class="btn btn-secondary" onclick="appSetDefaultAutofill()" style="margin:0">
+                        <span data-i18n="settings_default_autofill">App को Default Autofill बनाएं</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="appSyncContacts()" style="margin:0">
+                        <span data-i18n="settings_sync_contacts">Phone Book से संपर्क जोड़ें</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="appActionExportCSV()" style="margin:0">
+                        <span data-i18n="settings_export">📤 सादा CSV एक्सपोर्ट करें</span>
+                    </button>
+                    <button class="btn btn-danger" onclick="appActionWipe()" style="margin:0" data-i18n="settings_wipe">
+                        ⚠️ पूरा Vault सुरक्षित रूप से मिटाएं
+                    </button>
+                </div>
             </div>
 
             <div style="text-align: center; border-top: 1px solid var(--border); padding-top: 24px;">

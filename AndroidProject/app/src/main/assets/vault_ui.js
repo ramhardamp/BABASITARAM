@@ -44,6 +44,17 @@ function appReadItem(id) {
         <button class="icon-btn" style="border:none" onclick="copyToClip('${escapeHTML(item.password)}')">📋</button>
     </div>`;
     
+    if(item.totpSecret) {
+        html += `
+        <div class="input-label">TOTP Code (2FA) <span id="totpTimer" style="font-size:10px;color:var(--brand-secondary)"></span></div>
+        <div class="read-field" style="background: rgba(139, 92, 246, 0.1); border-color: var(--brand-primary);">
+            <div class="read-text mono" id="readTotpDisp" style="font-size: 24px; color: var(--brand-secondary); letter-spacing: 4px;">------</div>
+            <button class="icon-btn" style="border:none" id="totpCopyBtn">📋</button>
+        </div>`;
+        // Start live TOTP
+        setTimeout(() => updateLiveTotp(item.totpSecret), 10);
+    }
+    
     if(item.url) {
         html += `
         <div class="input-label">Website URL</div>
@@ -88,6 +99,7 @@ function uiOpenSheet(id) {
         document.getElementById('editUser').value = '';
         document.getElementById('editMobile').value = '';
         document.getElementById('editPass').value = '';
+        document.getElementById('editTotp').value = '';
         document.getElementById('editCategory').value = 'Other';
         document.getElementById('editUrl').value = '';
         document.getElementById('editNotes').value = '';
@@ -95,6 +107,32 @@ function uiOpenSheet(id) {
         document.getElementById('editDeleteBtn').style.display = 'none';
         appUpdateStrengthMeter();
     }
+}
+
+let TOTP_INTERVAL = null;
+async function updateLiveTotp(secret) {
+    if(TOTP_INTERVAL) clearInterval(TOTP_INTERVAL);
+    
+    const tick = async () => {
+        const res = await VaultTOTP.generate(secret);
+        const disp = document.getElementById('readTotpDisp');
+        const timer = document.getElementById('totpTimer');
+        const btn = document.getElementById('totpCopyBtn');
+        
+        if(!disp) { clearInterval(TOTP_INTERVAL); return; }
+        
+        if(res) {
+            disp.textContent = res.code.slice(0,3) + ' ' + res.code.slice(3);
+            timer.textContent = `Expires in ${res.remaining}s`;
+            btn.onclick = () => copyToClip(res.code);
+        } else {
+            disp.textContent = 'INVALID';
+            timer.textContent = '';
+        }
+    };
+    
+    await tick();
+    TOTP_INTERVAL = setInterval(tick, 1000);
 }
 
 
@@ -108,6 +146,7 @@ function appEditItem(id) {
     document.getElementById('editUser').value = item.username || '';
     document.getElementById('editMobile').value = item.mobile || '';
     document.getElementById('editPass').value = item.password || '';
+    document.getElementById('editTotp').value = item.totpSecret || '';
     document.getElementById('editCategory').value = item.category || 'Other';
     document.getElementById('editUrl').value = item.url || '';
     document.getElementById('editNotes').value = item.notes || '';
@@ -223,7 +262,9 @@ let ALL_APPS = [];
 function uiOpenAppSelector() {
     if (window.AndroidApp && window.AndroidApp.getInstalledApps) {
         try {
-            ALL_APPS = JSON.parse(window.AndroidApp.getInstalledApps());
+            // Fix: Fetch all apps properly and render immediately
+            const json = window.AndroidApp.getInstalledApps();
+            ALL_APPS = JSON.parse(json);
             ALL_APPS.sort((a,b) => a.name.localeCompare(b.name));
             uiRenderAppList();
             uiOpenSheet('sheetAppSelector');
@@ -242,9 +283,11 @@ function uiRenderAppList(query = '') {
     
     area.innerHTML = filtered.map(app => `
         <div class="item-card" onclick="uiSelectApp('${app.name}', '${app.pkg}')" style="padding: 12px; margin-bottom: 8px;">
-            <div class="item-avatar" style="width: 32px; height: 32px; font-size: 14px; border-radius: 8px;">${app.name[0]}</div>
+            <div class="item-avatar" style="width: 44px; height: 44px; background: none; border: none;">
+                ${app.icon ? `<img src="${app.icon}" class="app-icon-img">` : `<div class="item-avatar">${app.name[0]}</div>`}
+            </div>
             <div class="item-details">
-                <div class="item-title" style="font-size: 14px;">${app.name}</div>
+                <div class="item-title" style="font-size: 15px; font-weight: 600;">${app.name}</div>
                 <div class="item-sub" style="font-size: 11px;">${app.pkg}</div>
             </div>
         </div>
