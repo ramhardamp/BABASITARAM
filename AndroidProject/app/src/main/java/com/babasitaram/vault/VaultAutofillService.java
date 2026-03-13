@@ -45,7 +45,10 @@ public class VaultAutofillService extends AutofillService {
                 );
 
                 List<AutofillId> foundIds = new ArrayList<>();
-                traverseStructure(structure, datasetBuilder, match, foundIds);
+                int nodes = structure.getWindowNodeCount();
+                for (int i = 0; i < nodes; i++) {
+                    traverseStructure(structure.getWindowNodeAt(i).getRootViewNode(), datasetBuilder, match, foundIds);
+                }
 
                 if (!foundIds.isEmpty()) {
                     AutofillId[] idArray = foundIds.toArray(new AutofillId[0]);
@@ -62,7 +65,10 @@ public class VaultAutofillService extends AutofillService {
         try {
             FillResponse.Builder responseBuilder = new FillResponse.Builder();
             List<AutofillId> passwordIds = new ArrayList<>();
-            findSaveableIds(structure, passwordIds);
+            int nodes = structure.getWindowNodeCount();
+            for (int i = 0; i < nodes; i++) {
+                findSaveableIds(structure.getWindowNodeAt(i).getRootViewNode(), passwordIds);
+            }
             
             if (!passwordIds.isEmpty()) {
                 AutofillId[] idArray = passwordIds.toArray(new AutofillId[0]);
@@ -78,6 +84,7 @@ public class VaultAutofillService extends AutofillService {
     }
 
     private void findSaveableIds(AssistStructure.ViewNode node, List<AutofillId> ids) {
+        if (node == null) return;
         String idEntry = node.getIdEntry();
         if (node.getAutofillId() != null && idEntry != null) {
             String idLower = idEntry.toLowerCase();
@@ -91,6 +98,7 @@ public class VaultAutofillService extends AutofillService {
     }
 
     private void traverseStructure(AssistStructure.ViewNode node, Dataset.Builder builder, AutofillStore.Credential cred, List<AutofillId> idsFound) {
+        if (node == null) return;
         String idEntry = node.getIdEntry();
         String hint = "";
         String[] hints = node.getAutofillHints();
