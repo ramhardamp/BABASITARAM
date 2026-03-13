@@ -303,8 +303,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     mContext.startActivity(intent);
                 } catch (Exception e) {
-                    // Fallback for some ROMs
-                    mContext.startActivity(new Intent(Settings.ACTION_AUTOFILL_SETTINGS));
+                    mContext.startActivity(new Intent("android.settings.AUTOFILL_SETTINGS"));
                 }
             } else {
                 showToast("Autofill is only available on Android 8.0+");
