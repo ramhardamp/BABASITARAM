@@ -5,6 +5,8 @@ import android.annotation.TargetApi;
 import android.content.ClipData;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.provider.ContactsContract;
 import java.util.ArrayList;
 import java.util.List;
 import android.content.ClipboardManager;
