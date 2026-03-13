@@ -7,6 +7,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import android.content.ClipboardManager;
@@ -239,10 +241,10 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void syncAutofill(String json) {
             try {
-                org.json.JSONArray arr = new org.json.JSONArray(json);
+                JSONArray arr = new JSONArray(json);
                 List<AutofillStore.Credential> list = new ArrayList<>();
                 for (int i = 0; i < arr.length(); i++) {
-                    org.json.JSONObject obj = arr.getJSONObject(i);
+                    JSONObject obj = arr.getJSONObject(i);
                     list.add(new AutofillStore.Credential(
                             obj.getString("title"),
                             obj.getString("username"),
@@ -262,12 +264,12 @@ public class MainActivity extends AppCompatActivity {
             if (ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
                 return "PERMISSION_DENIED";
             }
-            List<org.json.JSONObject> list = new ArrayList<>();
-            android.database.Cursor cursor = mContext.getContentResolver().query(
-                android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            List<JSONObject> list = new ArrayList<>();
+            Cursor cursor = mContext.getContentResolver().query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 new String[]{
-                    android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                    android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
                 }, null, null, null);
             
             if (cursor != null) {
@@ -275,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         String name = cursor.getString(0);
                         String number = cursor.getString(1);
-                        org.json.JSONObject obj = new org.json.JSONObject();
+                        JSONObject obj = new JSONObject();
                         obj.put("title", name);
                         obj.put("mobile", number);
                         obj.put("category", "Contacts");
@@ -284,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 cursor.close();
             }
-            return new org.json.JSONArray(list).toString();
+            return new JSONArray(list).toString();
         }
 
         @JavascriptInterface
