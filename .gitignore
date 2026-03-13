@@ -1,0 +1,30 @@
+# Android
+build/
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+local.properties
+.gradle/
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+*.hprof
+.DS_Store
+
+# Chrome Extension / JS
+node_modules/
+dist/
+*.log
+.env
+.DS_Store
+
+# BABASITARAM Specific
+AndroidProject/app/build/
+AndroidProject/.gradle/
+AndroidProject/local.properties
+AndroidProject/.idea/

@@ -17,53 +17,48 @@
         /* Premium Dark Theme variables */
         :root {
             /* Backgrounds */
-            --bg-base: #0F172A; /* Slate 900 */
-            --bg-surface: #1E293B; /* Slate 800 */
-            --bg-elevated: #334155; /* Slate 700 */
-            --bg-glass: rgba(30, 41, 59, 0.7);
+            --bg-base: #07070a; 
+            --bg-surface: #12121e;
+            --bg-elevated: #1b1b2f;
+            --bg-glass: rgba(18, 18, 30, 0.85);
             
             /* Accents */
-            --brand-primary: #8B5CF6; /* Violet 500 */
-            --brand-secondary: #C084FC; /* Violet 400 */
-            --brand-gradient: linear-gradient(135deg, #8B5CF6, #C084FC);
+            --brand-primary: #a855f7; 
+            --brand-secondary: #c084fc;
+            --brand-glow: rgba(168, 85, 247, 0.4);
+            --brand-gradient: linear-gradient(135deg, #a855f7, #6366f1);
             
             /* Typography */
-            --text-primary: #F8FAFC; /* Slate 50 */
-            --text-secondary: #cbd5e1; /* Slate 300 */
-            --text-muted: #94a3b8; /* Slate 400 */
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
             
-            /* Status / Semantic */
-            --success: #10B981; /* Emerald 500 */
-            --warning: #F59E0B; /* Amber 500 */
-            --error: #EF4444; /* Red 500 */
-            --error-bg: rgba(239, 68, 68, 0.15);
+            /* Status */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --error-bg: rgba(239, 68, 68, 0.1);
             
             /* Structural */
-            --border: rgba(255, 255, 255, 0.08);
-            --border-focus: rgba(139, 92, 246, 0.5);
-            --radius-sm: 8px;
+            --border: rgba(255, 255, 255, 0.05);
             --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
             
-            /* Shadows for depth */
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.2);
-            --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+            --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.7);
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-base);
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background-image: radial-gradient(circle at 0% 0%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+                              radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
         }
 
-        /* Views System */
+        /* Premium View Transitions */
         .view {
             display: none;
             flex-direction: column;
@@ -72,331 +67,154 @@
             position: absolute;
             top: 0; left: 0;
             background: var(--bg-base);
-            animation: fadeIn 0.3s ease;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .view.active {
-            display: flex;
+        .view.active { display: flex; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Setup & Lock Screens */
-        .auth-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding: 24px;
-            background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), var(--bg-base) 60%);
-        }
-
-        .auth-card {
-            background: var(--bg-glass);
+        /* Glass Cards */
+        .auth-card, .item-card, .sheet {
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 40px 24px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: var(--shadow-lg);
         }
 
-        .auth-icon {
-            width: 64px;
-            height: 64px;
-            background: var(--brand-gradient);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            margin: 0 auto 24px;
-            box-shadow: var(--shadow-glow);
-        }
-
-        .title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
-        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
-
-        /* Form Elements */
-        .input-group { margin-bottom: 16px; text-align: left; }
-        .input-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .input-field {
-            width: 100%;
+        /* Home Security Hub */
+        .security-hub {
+            padding: 24px 20px;
             background: var(--bg-surface);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 14px 16px;
-            border-radius: var(--radius-md);
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.2s ease;
-            outline: none;
-        }
-        .input-field:focus {
-            border-color: var(--brand-primary);
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-        }
-        .input-field::placeholder { color: var(--text-muted); }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-size: 15px;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: var(--brand-gradient);
-            color: white;
-            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
-            margin-top: 24px;
-        }
-        .btn-primary:active { transform: scale(0.98); box-shadow: none; }
-        
-        .btn-secondary { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); margin-top: 12px; }
-        .btn-secondary:active { background: var(--bg-elevated); }
-
-        .btn-danger { background: var(--error-bg); color: var(--error); border: 1px solid rgba(239, 68, 68, 0.3); margin-top: 12px; }
-
-        .error-message {
-            color: var(--error);
-            font-size: 13px;
-            font-weight: 500;
-            margin-top: 8px;
-            min-height: 18px;
-        }
-
-        /* App Header */
-        .header {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border);
-            padding: 16px 20px;
+            margin-bottom: 8px;
+        }
+        .health-card {
+            background: var(--brand-gradient);
+            padding: 24px;
+            border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            z-index: 10;
+            box-shadow: 0 10px 40px var(--brand-glow);
+            position: relative;
+            overflow: hidden;
         }
+        .health-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; right: -20%;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .health-score { font-size: 36px; font-weight: 800; }
+        .health-label { font-size: 13px; font-weight: 600; opacity: 0.9; }
 
-        .header-brand { display: flex; align-items: center; gap: 12px; }
-        .header-logo {
-            width: 32px; height: 32px;
-            background: var(--brand-gradient);
-            border-radius: var(--radius-sm);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px;
-        }
-        .header-title-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-        .header-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-        
-        .header-actions { display: flex; gap: 8px; }
-        .icon-btn {
-            width: 40px; height: 40px;
-            background: transparent;
+        /* Item Cards Redesign */
+        .item-card {
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            color: var(--text-secondary);
-            font-size: 18px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .icon-btn:active { background: var(--bg-surface); transform: scale(0.95); }
-
-        /* Search Bar */
-        .search-container { padding: 16px 20px; background: var(--bg-base); border-bottom: 1px solid var(--border); }
-        .search-box {
-            position: relative;
-            display: flex; align-items: center;
-        }
-        .search-icon { position: absolute; left: 14px; font-size: 16px; color: var(--text-muted); }
-        .search-input {
-            width: 100%;
-            background: var(--bg-surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 14px 14px 14px 40px;
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .search-input:focus { border-color: var(--brand-secondary); }
-
-        /* Lists */
-        .content-area { flex: 1; overflow-y: auto; padding-bottom: 24px; -webkit-overflow-scrolling: touch; }
-        
-        .empty-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100%; color: var(--text-muted); text-align: center; padding: 40px 20px;
-        }
-        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-        .empty-text { font-size: 15px; font-weight: 500; }
-
-        .item-list { padding: 8px 16px; }
-        .item-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
             padding: 16px;
-            margin-bottom: 12px;
+            margin: 0 16px 12px;
             display: flex;
             align-items: center;
             gap: 16px;
             transition: all 0.2s;
-            cursor: pointer;
         }
-        .item-card:active { transform: scale(0.98); background: var(--bg-elevated); }
-        
+        .item-card:active { background: rgba(255,255,255,0.06); transform: scale(0.97); }
         .item-avatar {
-            width: 48px; height: 48px;
-            border-radius: var(--radius-md);
-            background: var(--brand-primary);
-            color: white;
-            font-size: 20px; font-weight: 700;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .item-details { flex: 1; min-width: 0; }
-        .item-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-sub { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
-        
-        .item-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        .action-icon {
-            width: 40px; height: 40px;
-            background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
-        }
-        .action-icon:active { background: var(--bg-elevated); transform: scale(0.9); }
-        
-        /* App Selector Icons */
-        .app-icon-img {
-            width: 44px; height: 44px;
-            border-radius: 10px;
-            object-fit: contain;
-            background: rgba(255,255,255,0.05);
+            width: 50px; height: 50px;
+            background: var(--bg-elevated);
             border: 1px solid var(--border);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 700; color: var(--brand-secondary);
         }
-        
-        .badge {
-            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .badge-danger { background: var(--error-bg); color: var(--error); }
 
         /* Floating Action Button */
         .fab {
-            position: fixed; right: 24px; bottom: 84px; /* above nav */
-            width: 56px; height: 56px;
-            border-radius: 28px;
+            position: fixed; right: 24px; bottom: 100px;
+            width: 64px; height: 64px;
+            border-radius: 20px;
             background: var(--brand-gradient);
             color: white;
-            font-size: 24px;
+            font-size: 28px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-glow);
+            box-shadow: 0 15px 35px var(--brand-glow);
             border: none;
-            cursor: pointer;
-            transition: transform 0.2s;
             z-index: 50;
+            transition: transform 0.2s;
         }
-        .fab:active { transform: scale(0.9); }
+        .fab:active { transform: scale(0.92); }
 
-        /* Bottom Navigation */
+        /* Input Fields */
+        .input-field {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 16px;
+            border-radius: 14px;
+            width: 100%;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus { border-color: var(--brand-primary); }
+
+        /* Bottom Nav */
         .bottom-nav {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(7, 7, 10, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-top: 1px solid var(--border);
+            height: 70px;
             display: flex;
             padding-bottom: env(safe-area-inset-bottom);
-            z-index: 40;
         }
         .nav-item {
-            flex: 1; padding: 12px 0;
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            color: var(--text-muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-            background: none; border: none; cursor: pointer; transition: color 0.2s;
+            flex: 1; border: none; background: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-secondary);
+            font-size: 10px; font-weight: 700; gap: 4px;
         }
         .nav-item.active { color: var(--brand-secondary); }
-        .nav-icon { font-size: 22px; margin-bottom: 2px; }
-        .nav-item.active .nav-icon { filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5)); }
+        .nav-icon { font-size: 20px; }
 
-        /* Slide-up Panels / Modals */
-        .overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-            z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .overlay.active { opacity: 1; pointer-events: all; }
-
+        /* Sheets */
         .sheet {
-            position: fixed; bottom: 0; left: 0; right: 0;
             background: var(--bg-surface);
+            border-radius: 32px 32px 0 0;
             border-top: 1px solid var(--border);
-            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-            z-index: 100;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
-            max-height: 90vh;
-            display: flex; flex-direction: column;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.8);
         }
-        .sheet.active { transform: translateY(0); }
-        
-        .sheet-handle { width: 40px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: 12px auto 0; }
-        
-        .sheet-header {
-            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border);
+
+        /* Search Bar Enhancement */
+        .search-container { padding: 8px 16px; margin-bottom: 8px; }
+        .search-box {
+            background: rgba(255,255,255,0.03);
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            padding: 4px 4px 4px 44px;
         }
-        .sheet-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
-        .btn-close { background: var(--bg-elevated); border: none; color: var(--text-primary); width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
-        
-        .sheet-body { padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); opacity: 0.4; }
+        .search-input { border: none; background: none; width: 100%; padding: 12px 0; color: white; outline: none; }
 
-        /* Display Values */
-        .read-field { background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-        .read-text { flex: 1; font-size: 15px; color: var(--text-primary); word-break: break-all; }
-        .read-text.mono { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 600; letter-spacing: 1px; }
-
-        /* Toast Notifications */
+        /* Toast */
         .toast {
-            position: fixed; bottom: 100px; left: 50%; transform: translate(-50%, 20px);
-            background: var(--text-primary); color: var(--bg-base);
-            padding: 12px 24px; border-radius: var(--radius-xl);
-            font-size: 14px; font-weight: 600;
-            box-shadow: var(--shadow-lg);
-            z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
-            display: flex; align-items: center; gap: 8px;
+            background: white; color: black;
+            border-radius: 50px; padding: 14px 28px;
+            font-weight: 700; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-        .toast.show { opacity: 1; transform: translate(-50%, 0); }
-        .toast.error { background: var(--error); color: white; }
 
-        /* Password Strength Meter */
-        .strength-meter { display: flex; gap: 4px; margin-top: 8px; }
-        .strength-bar { height: 4px; flex: 1; background: rgba(255,255,255,0.1); border-radius: 2px; transition: background 0.3s; }
-        .strength-bar.weak { background: var(--error); }
-        .strength-bar.medium { background: var(--warning); }
-        .strength-bar.strong { background: var(--success); }
-
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse { animation: pulse 2s infinite; }
     </style>
 </head>
 <body>
@@ -488,6 +306,20 @@
             </div>
         </div>
 
+        <!-- Home Security Hub (Premium Dashboard) -->
+        <div class="security-hub">
+            <div class="health-card pulse" onclick="openAuditSheet()">
+                <div>
+                    <div class="health-label">VAULT SECURITY HEALTH</div>
+                    <div class="health-score" id="vaultScoreDisplay">100%</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 24px;">🛡️</div>
+                    <div style="font-size: 11px; font-weight: 700; margin-top: 4px;">SECURE</div>
+                </div>
+            </div>
+        </div>
+
         <!-- List Content -->
         <div class="content-area" id="mainListArea">
             <!-- Injected dynamically -->
@@ -532,19 +364,65 @@
         </div>
         <div class="sheet-body">
             <div class="input-group">
-                <label class="input-label">शीर्षक *</label>
+                <label class="input-label">आइटम प्रकार (Type)</label>
+                <select id="editType" class="input-field" onchange="uiUpdateTemplateFields()">
+                    <option value="login">🔐 लॉगिन (Login)</option>
+                    <option value="card">💳 क्रेडिट/डेबिट कार्ड (Card)</option>
+                    <option value="identity">🆔 पहचान पत्र (Identity)</option>
+                    <option value="note">📝 सुरक्षित नोट (Note)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="input-label" id="labelTitle">Title *</label>
                 <div style="display:flex;gap:8px">
-                    <input type="text" id="editTitle" class="input-field" placeholder="जैसे: Google, Netflix">
-                    <button class="icon-btn" onclick="uiOpenAppSelector()" title="App से चुनें">📱</button>
+                    <input type="text" id="editTitle" class="input-field" placeholder="e.g. Google, HDFC Bank">
+                    <button class="icon-btn" onclick="uiOpenAppSelector()" title="Choose from Apps">📱</button>
                 </div>
             </div>
-            <div class="input-group">
-                <label class="input-label">यूजरनेम / ईमेल</label>
-                <input type="text" id="editUser" class="input-field" placeholder="user@example.com">
-            </div>
-            <div class="input-group">
-                <label class="input-label">मोबाइल नंबर</label>
-                <input type="tel" id="editMobile" class="input-field" placeholder="9876543210">
+
+            <!-- Dynamic Template Fields -->
+            <div id="templateFields">
+                <!-- Login Fields -->
+                <div id="tmplLogin">
+                    <div class="input-group">
+                        <label class="input-label">Username / Email</label>
+                        <input type="text" id="editUser" class="input-field" placeholder="user@example.com">
+                    </div>
+                </div>
+                
+                <!-- Card Fields -->
+                <div id="tmplCard" style="display:none">
+                    <div class="input-group">
+                        <label class="input-label">Cardholder Name</label>
+                        <input type="text" id="editCardName" class="input-field" placeholder="Full Name">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Card Number</label>
+                        <input type="tel" id="editCardNumber" class="input-field" placeholder="0000 0000 0000 0000">
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                        <div class="input-group">
+                            <label class="input-label">Expiry</label>
+                            <input type="text" id="editCardExp" class="input-field" placeholder="MM/YY">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">CVV</label>
+                            <input type="password" id="editCardCvv" class="input-field" placeholder="***">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Identity Fields -->
+                <div id="tmplIdentity" style="display:none">
+                    <div class="input-group">
+                        <label class="input-label">ID Number (Aadhar/PAN/License)</label>
+                        <input type="text" id="editIdNumber" class="input-field" placeholder="Number">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Phone Number</label>
+                        <input type="tel" id="editMobile" class="input-field" placeholder="9876543210">
+                    </div>
+                </div>
             </div>
             <div class="input-group">
                 <label class="input-label">श्रेणी (Category)</label>
@@ -563,7 +441,7 @@
                 <div style="display:flex;gap:8px">
                     <input type="password" id="editPass" class="input-field" placeholder="गुप्त पासवर्ड" oninput="appUpdateStrengthMeter()">
                     <button class="icon-btn" onclick="appTogglePassVis('editPass')">👁</button>
-                    <button class="icon-btn" onclick="appGeneratePassword()">⚡</button>
+                    <button class="icon-btn" onclick="uiOpenGenerator()">⚡</button>
                 </div>
                 <div class="strength-meter">
                     <div class="strength-bar" id="strM1"></div>
@@ -590,74 +468,77 @@
         </div>
     </div>
 
-    <!-- SETTINGS & EXPORT SHEET -->
+    <!-- SETTINGS & DATA MANAGEMENT SHEET -->
     <div class="sheet" id="sheetSettings">
         <div class="sheet-handle"></div>
         <div class="sheet-header">
-            <h2 class="sheet-title" data-i18n="settings_title">⚙️ Vault सेटिंग्स</h2>
+            <h2 class="sheet-title" data-i18n="settings_title">⚙️ Vault Settings</h2>
             <button class="btn-close" onclick="uiCloseAllSheets()">✕</button>
         </div>
         <div class="sheet-body">
-            <div style="margin-bottom: 32px">
-                <h3 class="input-label" data-i18n="settings_lang">भाषा (Language)</h3>
-                <select id="settingLang" class="input-field" onchange="APP_SETTINGS.lang=this.value;saveSettings();updateUILanguage();appRefreshUI();">
-                    <option value="hi">हिन्दी (Hindi)</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 32px">
-                <h3 class="input-label" data-i18n="settings_sync">Chrome एक्सटेंशन के साथ सिंक करें</h3>
-                <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">मोबाइल ऐप और Chrome एक्सटेंशन के बीच परफेक्ट सिंक के लिए `.vaultbak` फाइलें बनाएं।</p>
-                <button class="btn btn-primary" onclick="appActionExportBackup()" style="margin-top:0">📤 Chrome बैकअप एक्सपोर्ट करें (.vaultbak)</button>
+            <!-- Section: Security & Authentication -->
+            <div style="margin-bottom:28px;">
+                <div style="font-size:12px; font-weight:700; color:var(--brand-secondary); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">🔒 SECURITY & AUTHENTICATION</div>
                 
-                <button class="btn btn-secondary" onclick="appActionImportBackup()">📥 बैकअप इम्पोर्ट करें (.vaultbak) / JSON</button>
-                <button class="btn btn-pro" onclick="document.getElementById('hiddenCSVInput').click()">📤 Chrome/Bitwarden CSV से माइग्रेट करें</button>
-                <input type="file" id="hiddenFileInput" style="display:none" accept=".vaultbak,.json" onchange="appHandleFileSelected(this)">
-                <input type="file" id="hiddenCSVInput" style="display:none" accept=".csv" onchange="appHandleCSVSelected(this)">
-            </div>
-            
-            <div style="margin-bottom: 32px">
-                <h3 class="input-label">सुरक्षा सेटिंग्स</h3>
-                <div class="input-group">
-                    <label class="input-label">ऑटो-लॉक (निष्क्रियता के बाद)</label>
-                    <select id="settingAutoLock" class="input-field" onchange="APP_SETTINGS.autoLockMins=parseInt(this.value);AUTO_LOCK_MINS=parseInt(this.value);saveSettings();resetAutoLockTimer();">
-                        <option value="1">1 मिनट</option>
-                        <option value="5" selected>5 मिनट</option>
-                        <option value="10">10 मिनट</option>
-                        <option value="30">30 मिनट</option>
-                    </select>
-                </div>
-                <div class="input-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 12px;">
-                    <label class="input-label" data-i18n="settings_bio" style="margin: 0; text-transform: none;">फिंगरप्रिंट अनलॉक (Biometric)</label>
+                <div class="read-field" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 12px; background: rgba(255,255,255,0.02);">
+                    <span data-i18n="settings_bio" style="font-size:14px;">Biometric Unlock</span>
                     <input type="checkbox" id="settingBio" style="width: 20px; height: 20px; accent-color: var(--brand-primary);" onchange="APP_SETTINGS.biometrics=this.checked;saveSettings();checkBioVisibility();">
                 </div>
-                <div class="input-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                    <label class="input-label" data-i18n="settings_autobackup" style="margin: 0; text-transform: none;">सेल्फ ऑटो-बैकअप (Silent)</label>
+
+                <div class="read-field" style="display: flex; flex-direction:column; gap:8px; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+                    <label class="input-label" style="font-size:12px; margin:0;">Auto-Lock Timeout</label>
+                    <select id="settingAutoLock" class="input-field" style="padding:10px; font-size:14px;" onchange="APP_SETTINGS.autoLockMins=parseInt(this.value);AUTO_LOCK_MINS=parseInt(this.value);saveSettings();resetAutoLockTimer();">
+                        <option value="1">1 Minute</option>
+                        <option value="5" selected>5 Minutes</option>
+                        <option value="15">15 Minutes</option>
+                        <option value="30">30 Minutes</option>
+                        <option value="0">Never (Not Recommended)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section: Backup & Import -->
+            <div style="margin-bottom:28px;">
+                <div style="font-size:12px; font-weight:700; color:var(--brand-secondary); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">📂 BACKUP & DATA MANAGEMENT</div>
+                
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Ensure your data is safe by regularly exporting back-up files.</p>
+                
+                <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
+                    <button class="btn btn-primary" onclick="appActionExportBackup()" style="margin:0; font-size:14px;">📤 Export .vaultbak (Chrome/Mobile)</button>
+                    <button class="btn btn-secondary" onclick="appActionImportBackup()" style="margin:0; font-size:14px;">📥 Import Backup File</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('hiddenCSVInput').click()" style="margin:0; font-size:14px;">📄 Import from CSV (Chrome/Bitwarden)</button>
+                </div>
+                
+                <div class="read-field" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-top: 12px; background: rgba(255,255,255,0.02);">
+                    <span data-i18n="settings_autobackup" style="font-size:14px;">Auto-Backup (Native Storage)</span>
                     <input type="checkbox" id="settingAutoBackup" style="width: 20px; height: 20px; accent-color: var(--brand-primary);" onchange="APP_SETTINGS.autoBackup=this.checked;saveSettings();">
                 </div>
             </div>
-            
-            <div style="margin-bottom: 32px">
-                <h3 class="input-label" data-i18n="settings_other">अन्य विकल्प</h3>
-                <div style="display:flex; flex-direction:column; gap:12px">
-                    <button class="btn btn-secondary" onclick="appSetDefaultAutofill()" style="margin:0">
-                        <span data-i18n="settings_default_autofill">App को Default Autofill बनाएं</span>
-                    </button>
-                    <button class="btn btn-secondary" onclick="appSyncContacts()" style="margin:0">
-                        <span data-i18n="settings_sync_contacts">Phone Book से संपर्क जोड़ें</span>
-                    </button>
-                    <button class="btn btn-secondary" onclick="appActionExportCSV()" style="margin:0">
-                        <span data-i18n="settings_export">📤 सादा CSV एक्सपोर्ट करें</span>
-                    </button>
-                    <button class="btn btn-danger" onclick="appActionWipe()" style="margin:0" data-i18n="settings_wipe">
-                        ⚠️ पूरा Vault सुरक्षित रूप से मिटाएं
-                    </button>
+
+            <!-- Section: App Preferences -->
+            <div style="margin-bottom:28px;">
+                <div style="font-size:12px; font-weight:700; color:var(--brand-secondary); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">⚙️ APP PREFERENCES</div>
+                
+                <div class="input-group">
+                    <label class="input-label" data-i18n="settings_lang">Language / भाषा</label>
+                    <select id="settingLang" class="input-field" onchange="APP_SETTINGS.lang=this.value;saveSettings();updateUILanguage();appRefreshUI();">
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="en">English (US)</option>
+                    </select>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
+                    <button class="btn btn-secondary" onclick="appSetDefaultAutofill()" style="margin:0; font-size:14px;">✨ Set as Default Autofill</button>
+                    <button class="btn btn-secondary" onclick="openLogsSheet()" style="margin:0; font-size:14px;">📋 View Security Audit Log</button>
+                    <button class="btn btn-secondary" onclick="appActionExportCSV()" style="margin:0; font-size:14px;">📊 Export Plain CSV (Unencrypted)</button>
                 </div>
             </div>
 
             <div style="text-align: center; border-top: 1px solid var(--border); padding-top: 24px;">
-                <p style="font-size: 13px; color: var(--text-muted);">सहायता के लिए संपर्क करें:</p>
-                <p style="font-size: 14px; font-weight: 600; color: var(--brand-secondary);">ramhardamp@gmail.com</p>
+                <p style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">BABASITARAM Vault v5.11 Professional</p>
+                <p style="font-size: 12px; color: var(--brand-secondary); margin-top: 4px;">Created with blessings of Sant Shri Ramchandra Das Ji</p>
+                <input type="file" id="hiddenFileInput" style="display:none" accept=".vaultbak,.json" onchange="appHandleFileSelected(this)">
+                <input type="file" id="hiddenCSVInput" style="display:none" accept=".csv" onchange="appHandleCSVSelected(this)">
             </div>
         </div>
     </div>
@@ -689,6 +570,55 @@
         </div>
         <div class="sheet-body" id="auditBody">
             <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <!-- SECURITY LOG SHEET -->
+    <div class="sheet" id="sheetLogs">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 class="sheet-title">📋 Security Audit Log</h2>
+            <button class="btn-close" onclick="uiCloseAllSheets()">✕</button>
+        </div>
+        <div class="sheet-body" id="logsBody">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <!-- PASSWORD GENERATOR SHEET -->
+    <div class="sheet" id="sheetGenerator">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 class="sheet-title">⚡ Password Generator</h2>
+            <button class="btn-close" onclick="uiCloseSheet('sheetGenerator')">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div style="background:var(--bg-elevated); padding:24px; border-radius:var(--radius-lg); margin-bottom:20px; text-align:center;">
+                <div id="genDisplay" style="font-size:20px; font-weight:700; color:var(--brand-secondary); word-break:break-all; letter-spacing:1px; margin-bottom:12px;">••••••••</div>
+                <button class="btn btn-secondary" onclick="uiGenerateCustom()" style="margin:0">Regenerate 🔄</button>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Length: <span id="genLenVal">16</span></label>
+                <input type="range" id="genLen" min="8" max="64" value="16" style="width:100%" oninput="document.getElementById('genLenVal').textContent=this.value; uiGenerateCustom()">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="read-field" style="justify-content:space-between; padding:10px;">
+                    <span style="font-size:13px">ABC</span>
+                    <input type="checkbox" id="genUpper" checked onchange="uiGenerateCustom()">
+                </div>
+                <div class="read-field" style="justify-content:space-between; padding:10px;">
+                    <span style="font-size:13px">123</span>
+                    <input type="checkbox" id="genNum" checked onchange="uiGenerateCustom()">
+                </div>
+                <div class="read-field" style="justify-content:space-between; padding:10px;">
+                    <span style="font-size:13px">!@#</span>
+                    <input type="checkbox" id="genSym" checked onchange="uiGenerateCustom()">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="margin-top:24px;" onclick="uiUseGenerated()">Use This Password</button>
         </div>
     </div>
 

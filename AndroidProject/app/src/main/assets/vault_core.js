@@ -7,7 +7,10 @@ const HASH_KEY = 'v_hash';
 let IS_UNLOCKED = false;
 let MASTER_PASS = null;
 let ENTRIES = [];
+let LOGS = [];
 let ACTIVE_TAB = 'all';
+
+const BREACHED_PATTERNS = ['123', 'admin', 'password', 'qwerty', 'abc', '111', 'login'];
 let AUTO_LOCK_INTERVAL = null;
 let WIPE_PENDING = false;
 let APP_SETTINGS = {
@@ -26,7 +29,6 @@ const TRANSLATIONS = {
         lock_title: "Vault लॉक है",
         lock_sub: "अनलॉक करने के लिए मास्टर पासवर्ड डालें",
         lock_btn: "अनलॉक करें",
-        lock_reset: "Vault रिसेट करें (सब कुछ मिटा दें)",
         nav_items: "सभी आइटम",
         nav_favs: "पसंदीदा",
         nav_audit: "ऑडिट",
@@ -43,24 +45,20 @@ const TRANSLATIONS = {
         label_url: "वेबसाइट URL",
         label_notes: "नोट्स",
         btn_save: "💾 आइटम सुरक्षित करें",
-        settings_title: "⚙️ Vault सेटिंग्स",
-        settings_lang: "भाषा (Language)",
-        settings_sync: "Chrome एक्सटेंशन बैकअप",
-        settings_bio: "फिंगरप्रिंट अनलॉक",
-        settings_autobackup: "सेल्फ ऑटो-बैकअप (Silent)",
-        settings_default_autofill: "App को Default Autofill बनाएं",
-        settings_sync_contacts: "Phone Book से संपर्क जोड़ें",
-        settings_other: "अन्य विकल्प",
+        settings_title: "⚙️ Vault Settings",
+        settings_lang: "Language / भाषा",
+        settings_bio: "Biometric Unlock",
+        settings_autobackup: "Auto-Backup (Native)",
+        settings_sync: "Backup & Data",
+        settings_default_autofill: "Set Default Autofill",
+        settings_other: "Other Options",
         settings_export: "📤 सादा CSV एक्सपोर्ट करें",
-        settings_wipe: "⚠️ पूरा Vault सुरक्षित रूप से मिटाएं",
         toast_saved: "Vault आइटम सुरक्षित हो गया!",
         toast_deleted: "आइटम हटा दिया गया",
         toast_copied: "क्लिपबोर्ड पर कॉपी किया गया!",
-        wipe_confirm_pw: "डेटा मिटाने के लिए अपना मास्टर पासवर्ड डालें:",
         toast_wrong_pass: "गलत मास्टर पासवर्ड!",
         toast_bio_verify: "सत्यापित करने के लिए फिंगरप्रिंट का उपयोग करें",
-        toast_verify_fail: "सत्यापन विफल रहा",
-        wipe_final_confirm: "चेतावनी! क्या आप वाकई सब कुछ मिटाना चाहते हैं? यह प्रक्रिया वापस नहीं ली जा सकती।"
+        toast_verify_fail: "सत्यापन विफल रहा"
     },
     en: {
         setup_title: "Welcome to Vault",
@@ -69,7 +67,6 @@ const TRANSLATIONS = {
         lock_title: "Vault is Locked",
         lock_sub: "Enter Master Password to unlock",
         lock_btn: "Unlock Now",
-        lock_reset: "Reset Vault (Wipe Everything)",
         nav_items: "All Items",
         nav_favs: "Favorites",
         nav_audit: "Audit",
@@ -87,23 +84,19 @@ const TRANSLATIONS = {
         label_notes: "Notes",
         btn_save: "💾 Save Item",
         settings_title: "⚙️ Vault Settings",
-        settings_lang: "Language",
-        settings_sync: "Chrome Extension Backup",
+        settings_lang: "Language / भाषा",
         settings_bio: "Biometric Unlock",
-        settings_autobackup: "Silent Auto-Backup",
-        settings_default_autofill: "Set as Default Autofill",
-        settings_sync_contacts: "Sync Phone Book Contacts",
+        settings_autobackup: "Auto-Backup (Native)",
+        settings_sync: "Backup & Data",
+        settings_default_autofill: "Set Default Autofill",
         settings_other: "Other Options",
         settings_export: "📤 Export Plain CSV",
-        settings_wipe: "⚠️ Wipe All Data Permanently",
         toast_saved: "Vault entry saved!",
         toast_deleted: "Item deleted",
         toast_copied: "Copied to clipboard!",
-        wipe_confirm_pw: "Enter Master Password to wipe data:",
         toast_wrong_pass: "Incorrect Master Password!",
         toast_bio_verify: "Please use fingerprint to verify action",
-        toast_verify_fail: "Verification failed",
-        wipe_final_confirm: "WARNING! Are you sure you want to delete everything? This cannot be undone."
+        toast_verify_fail: "Verification failed"
     }
 };
 
@@ -280,6 +273,10 @@ window.addEventListener('DOMContentLoaded', () => {
         updateUILanguage();
     }
 
+    // Load Logs
+    const logsJson = localStorage.getItem('v_logs');
+    if(logsJson) LOGS = JSON.parse(logsJson);
+
     if(localStorage.getItem(HASH_KEY)) {
         document.getElementById('viewSetup').classList.remove('active');
         document.getElementById('viewLock').classList.add('active');
@@ -308,6 +305,7 @@ async function appCreateVault() {
         
         document.getElementById('viewSetup').classList.remove('active');
         document.getElementById('viewMain').classList.add('active');
+        logEvent('VAULT_SETUP', 'New vault profile created');
         appRefreshUI();
         showToast('Vault सफलतापूर्वक बन गया!');
     } catch(e) {
@@ -355,6 +353,7 @@ async function appUnlockVault(biometricOverride = false) {
         callSyncAutofill();
         document.getElementById('viewLock').classList.remove('active');
         document.getElementById('viewMain').classList.add('active');
+        logEvent('VAULT_UNLOCK', 'Success');
         appRefreshUI();
         document.getElementById('lockPin').value = '';
         
@@ -387,6 +386,7 @@ function appLockVault() {
     MASTER_PASS = null;
     ENTRIES = [];
     IS_UNLOCKED = false;
+    logEvent('VAULT_LOCK', 'Manual lock triggered');
     if(AUTO_LOCK_INTERVAL) clearInterval(AUTO_LOCK_INTERVAL);
     uiCloseAllSheets();
     document.getElementById('viewMain').classList.remove('active');
@@ -460,6 +460,7 @@ async function saveToDB() {
     }
     
     appRefreshUI();
+    if(typeof refreshSecurityHub === 'function') refreshSecurityHub();
 }
 
 // --- Vault Actions ---
@@ -544,6 +545,8 @@ function appRenderList(query = '') {
             </div>
         `;
     });
+    
+    if(typeof refreshSecurityHub === 'function') refreshSecurityHub();
 }
 
 function highlightText(text, q) {
@@ -565,11 +568,25 @@ function appSaveItem() {
     if(!t) return showToast('Title required', true);
     if(!p) return showToast('Password required', true);
     
+    const oldEntry = ENTRIES.find(x => x.id === window.editingId);
+    let history = oldEntry?.history || [];
+    
+    // Pro Feature: Password History
+    if(oldEntry && oldEntry.password !== p) {
+        history.push({
+            password: oldEntry.password,
+            date: oldEntry.updatedAt || Date.now()
+        });
+        if(history.length > 5) history.shift(); // Keep last 5
+    }
+
     const isNew = !window.editingId;
     const now = Date.now();
-    
+    const type = document.getElementById('editType').value;
+
     const entry = {
         id: isNew ? 'v_' + Math.random().toString(36).substr(2) : window.editingId,
+        type: type,
         title: t,
         username: u,
         mobile: document.getElementById('editMobile').value || '',
@@ -578,15 +595,26 @@ function appSaveItem() {
         category: document.getElementById('editCategory').value || 'Other',
         url: document.getElementById('editUrl').value,
         notes: document.getElementById('editNotes').value,
+        
+        // Template Specific Fields
+        cardName: document.getElementById('editCardName').value || '',
+        cardNumber: document.getElementById('editCardNumber').value || '',
+        cardExp: document.getElementById('editCardExp').value || '',
+        cardCvv: document.getElementById('editCardCvv').value || '',
+        idNumber: document.getElementById('editIdNumber').value || '',
+
         strength: checkStrength(p),
-        starred: isNew ? false : (ENTRIES.find(x => x.id === window.editingId)?.starred || false),
-        createdAt: isNew ? now : (ENTRIES.find(x => x.id === window.editingId)?.createdAt || now),
-        updatedAt: now
+        starred: isNew ? false : (oldEntry?.starred || false),
+        createdAt: isNew ? now : (oldEntry?.createdAt || now),
+        updatedAt: now,
+        history: history
     };
     
     if(isNew) {
+        logEvent('ITEM_ADD', t);
         ENTRIES.push(entry);
     } else {
+        logEvent('ITEM_EDIT', t);
         const idx = ENTRIES.findIndex(x => x.id === window.editingId);
         ENTRIES[idx] = entry;
     }
@@ -599,6 +627,8 @@ function appSaveItem() {
 async function appDeleteItem() {
     if(!window.editingId) return;
     if(!confirm('Permanently delete this entry?')) return;
+    const deletedItem = ENTRIES.find(x => x.id === window.editingId);
+    logEvent('ITEM_DELETE', deletedItem?.title || 'Unknown');
     ENTRIES = ENTRIES.filter(x => x.id !== window.editingId);
     await saveToDB();
     uiCloseAllSheets();
@@ -614,60 +644,25 @@ function appHandleFileSelected(input) {
     const file = input.files[0];
     if(!file) return;
     
-    if(file.name.endsWith('.csv')) {
-        appHandleCSVSelected(input);
-        return;
-    }
-    
     const reader = new FileReader();
     reader.onload = async (ev) => {
         const text = ev.target.result;
         
-        // Handle .vaultbak Chrome Extension Backup
-        if(file.name.endsWith('.vaultbak')) {
-            let rawData = text.trim();
-            
-            // Format Detection: Check if it's the wrapped JSON format (Extension Auto-Backup)
-            try {
-                const decodedText = atob(rawData);
-                if (decodedText.startsWith('{')) {
-                    const wrap = JSON.parse(decodedText);
-                    if (wrap.vault_backup && wrap.data) {
-                        rawData = wrap.data; 
-                    }
-                }
-            } catch(e) { }
-
-            const pw = prompt('इस .vaultbak फ़ाइल को डिक्रिप्ट करने के लिए पासवर्ड डालें:');
-            if(!pw) return showToast('इम्पोर्ट रद्द कर दिया गया', true);
-            
-            try {
-                const dec = await decryptData(rawData, pw);
-                const data = JSON.parse(dec);
-                if(data.entries && Array.isArray(data.entries)) {
-                    mergeEntries(data.entries);
-                    showToast(`✅ ${data.entries.length} आइटम बैकअप से इम्पोर्ट किए गए`);
-                } else {
-                    showToast('❌ फाइल में डेटा सही फॉर्मेट में नहीं है।', true);
-                }
-            } catch(e) {
-                console.error('Import Error:', e);
-                showToast(`❌ डिक्रिप्शन विफल: ${e.message || 'गलत पासवर्ड'}`, true);
-            }
-        } else if(file.name.endsWith('.csv')) {
-            try {
-                const results = parseCSV(text);
-                if(results.length > 0) {
-                    mergeEntries(results);
-                    showToast(`✅ ${results.length} आइटम CSV से इम्पोर्ट किए गए`);
-                }
-            } catch(e) {
-                showToast('❌ CSV फाइल पढ़ने में एरर', true);
-            }
+        const name = file.name.toLowerCase();
+        if (name.endsWith('.vaultbak')) {
+            handleVaultBakImport(text);
+        } else if (name.endsWith('.csv')) {
+            handleCSVImport(text);
+        } else if (name.endsWith('.json')) {
+            handleJSONImport(text);
+        } else {
+            showToast('Unsupported file format', true);
         }
+        return;
     };
     reader.readAsText(file);
     uiCloseAllSheets();
+    input.value = '';
 }
 
 function checkBioVisibility() {
@@ -757,28 +752,62 @@ function parseCSV(text) {
 
 function processCSVData(rows) {
     if (!rows.length) return [];
-    const header = rows[0].map(h => h.toLowerCase().trim());
-    const findCol = (...names) => { for (const n of names) { const i = header.findIndex(h => h === n || h.includes(n)); if (i !== -1) return i; } return -1; };
     
-    const iTitle = findCol('name', 'title', 'site');
-    const iUrl = findCol('url', 'website', 'uri');
-    const iUser = findCol('username', 'user', 'login', 'email');
-    const iPass = findCol('password', 'pass', 'pwd');
-    const iNotes = findCol('notes', 'note', 'comment');
+    // Universal Keyword Mapping for major Password Managers
+    // (Chrome, Bitwarden, LastPass, 1Password, KeePass, NordPass, Dashlane, etc.)
+    const header = rows[0].map(h => h.toLowerCase().trim().replace(/["']/g, ''));
     
+    const findCol = (...names) => { 
+        for (const n of names) { 
+            const i = header.findIndex(h => h === n || h.includes(n) || n.includes(h)); 
+            if (i !== -1) return i; 
+        } 
+        return -1; 
+    };
+    
+    // Mapping keywords
+    const iTitle = findCol('name', 'title', 'site', 'label', 'account', 'description');
+    const iUrl = findCol('url', 'website', 'uri', 'link', 'address', 'host');
+    const iUser = findCol('username', 'user', 'login', 'email', 'id', 'member');
+    const iPass = findCol('password', 'pass', 'pwd', 'code', 'secret', 'key');
+    const iNotes = findCol('notes', 'note', 'comment', 'extra', 'info', 'remarks');
+    const iMobile = findCol('mobile', 'phone', 'tel', 'cell');
+    const iTotp = findCol('totp', '2fa', 'otp', 'auth', 'secret'); // Common for TOTP seeds
+    const iCategory = findCol('category', 'folder', 'collection', 'group', 'tag');
+
     const results = [];
     for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        const get = idx => (idx >= 0 && r[idx]) ? r[idx] : '';
+        if (!r.length) continue;
+        
+        const get = idx => (idx >= 0 && r[idx]) ? r[idx].replace(/^"|"$/g, '').trim() : '';
         const password = get(iPass);
+        
+        // Skip rows without a password
         if (!password) continue;
+
+        let title = get(iTitle);
+        let url = get(iUrl);
+        let user = get(iUser);
+
+        // Intelligent Fallbacks
+        if (!title) {
+            if (url) title = normUrl(url);
+            else if (user) title = user.split('@')[0];
+            else title = 'Imported Item';
+        }
+
         results.push({
-            title: get(iTitle) || normUrl(get(iUrl)) || 'Imported CSV',
-            url: get(iUrl),
-            username: get(iUser),
+            type: 'login', // Default for CSV imports
+            title: title,
+            url: url,
+            username: user,
             password: password,
+            mobile: get(iMobile),
             notes: get(iNotes),
-            category: 'Other'
+            totpSecret: get(iTotp),
+            category: get(iCategory) || 'Other',
+            strength: checkStrength(password)
         });
     }
     return results;
@@ -786,33 +815,32 @@ function processCSVData(rows) {
 
 async function appActionExportBackup() {
     const date = new Date().toISOString().slice(0, 10);
-    const pw = prompt('इस .vaultbak पेलोड को एन्क्रिप्ट करने के लिए एक पासवर्ड सेट करें (इसे रिस्टोर करने के लिए आपको इसकी आवश्यकता होगी):');
-    if(!pw) return showToast('एक्सपोर्ट रद्द कर दिया गया', true);
-    if(pw.length < 6) return showToast('पासवर्ड कम से कम 6 अक्षर का होना चाहिए', true);
-    
-    const payload = JSON.stringify({
-        version: '1.1',
-        app: 'Vault',
-        exportDate: new Date().toISOString(),
-        count: ENTRIES.length,
-        entries: ENTRIES
-    });
-    
+    // User requested "Ek hi password wala logic" - Always use Master Password for cross-platform ease
+    if(!MASTER_PASS) return showToast('Please unlock vault first');
+
     try {
-        const encrypted = await encryptData(payload, pw);
-        // User BUG-02 Fix: Use the wrapper format the Chrome extension expects
+        const payload = JSON.stringify({
+            version: '2.0',
+            app: 'Vault Pro',
+            exportDate: new Date().toISOString(),
+            count: ENTRIES.length,
+            entries: ENTRIES
+        });
+
+        const encrypted = await encryptData(payload, MASTER_PASS);
         const wrapper = {
             vault_backup: true,
             data: encrypted,
-            v: 2, // Version indicator
+            v: 2,
             exportDate: new Date().toISOString()
         };
-        const finalB64 = btoa(JSON.stringify(wrapper));
-        downloadViaBridge(finalB64, `vault-backup-${date}.vaultbak`, 'application/octet-stream');
+        const finalRAW = JSON.stringify(wrapper);
+        logEvent('EXPORT_BACKUP', `File: vault-backup-${date}.vaultbak`);
+        downloadViaBridge(finalRAW, `vault-backup-${date}.vaultbak`, 'application/json');
         uiCloseAllSheets();
-        showToast('📤 .vaultbak एक्सपोर्ट हो गया!');
+        showToast('📤 Backup (.vaultbak) exported using Master Password');
     } catch(e) {
-        showToast('एन्क्रिप्शन विफल रहा', true);
+        showToast('Backup failed: ' + e.message, true);
     }
 }
 
@@ -845,20 +873,37 @@ function mergeEntries(newEntries) {
     let added = 0;
     let skipped = 0;
     newEntries.forEach(n => {
-        const nUrl = normUrl(n.url);
+        // Universal Field Parsing: Handle diverse input names
+        const title = n.title || n.name || n.site || n.label || 'Imported Item';
+        const url = n.url || n.website || n.uri || n.link ||'';
+        const username = n.username || n.user || n.login || n.email || '';
+        const password = n.password || n.pass || n.pwd || '';
+        
+        if(!password) { skipped++; return; }
+
+        const nUrl = normUrl(url);
         const dup = ENTRIES.find(x => 
             normUrl(x.url) === nUrl && 
-            (x.username || '').toLowerCase() === (n.username || '').toLowerCase()
+            (x.username || '').toLowerCase() === username.toLowerCase()
         );
+        
         if(!dup) {
             const now = Date.now();
             ENTRIES.push({
-                ...n,
                 id: 'v_' + Math.random().toString(36).substr(2),
-                strength: checkStrength(n.password),
-                starred: false,
-                createdAt: now,
-                updatedAt: now
+                type: n.type || 'login',
+                title: title,
+                url: url,
+                username: username,
+                password: password,
+                mobile: n.mobile || '',
+                notes: n.notes || n.note || n.comment || '',
+                totpSecret: n.totpSecret || n.totp || '',
+                category: n.category || 'Other',
+                strength: n.strength || checkStrength(password),
+                starred: n.starred || false,
+                createdAt: n.createdAt || now,
+                updatedAt: n.updatedAt || now
             });
             added++;
         } else {
@@ -866,7 +911,7 @@ function mergeEntries(newEntries) {
         }
     });
     saveToDB();
-    if(added > 0) showToast(`${added} नए आइटम जोड़े गए${skipped > 0 ? `, ${skipped} डूप्लिकेट छोड़े गए` : ''}`);
+    if(added > 0) showToast(`${added} new items added. ${skipped > 0 ? skipped + ' skipped/dupes.' : ''}`);
 }
 
 function normUrl(u) {
@@ -901,56 +946,56 @@ function appSetDefaultAutofill() {
     }
 }
 
-async function appActionWipe() {
-    const pw = prompt(i18n('wipe_confirm_pw'));
-    if (!pw) return;
+// --- Professional Feature: Security Event Logging ---
+function logEvent(action, details = '') {
+    const log = {
+        id: 'L_' + Date.now(),
+        timestamp: new Date().toISOString(),
+        action: action,
+        details: details
+    };
+    LOGS.unshift(log);
+    if(LOGS.length > 50) LOGS.pop(); // Keep last 50 events
+    localStorage.setItem('v_logs', JSON.stringify(LOGS)); 
+}
 
+// --- Professional Feature: TOTP Authenticator (RFC 6238) ---
+// Note: This is a standalone implementation of TOTP logic
+async function generateTOTP(secret) {
+    if(!secret) return null;
     try {
-        const hash = localStorage.getItem(HASH_KEY);
-        const canary = await decryptData(hash, pw);
-        if (canary !== '__VAULT_CANARY__') {
-            showToast(i18n('toast_wrong_pass'), true);
-            return;
-        }
+        // Base32 to Byte Array
+        const base32ToBuf = (s) => {
+            const b32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+            s = s.replace(/=/g, "").toUpperCase();
+            let l = s.length, b = 0, v = 0, res = new Uint8Array(((l * 5) / 8) | 0);
+            for (let i = 0, j = 0; i < l; i++) {
+                v = (v << 5) | b32.indexOf(s[i]);
+                b += 5;
+                if (b >= 8) { res[j++] = (v >> (b - 8)) & 255; b -= 8; }
+            }
+            return res;
+        };
 
-        if (APP_SETTINGS.biometrics) {
-            WIPE_PENDING = true;
-            showToast(i18n('toast_bio_verify'));
-            appBiometricUnlock();
-        } else {
-            executeWipe();
-        }
-    } catch (e) {
-        showToast(i18n('toast_verify_fail'), true);
-    }
+        const key = base32ToBuf(secret);
+        const epoch = Math.round(Date.now() / 1000.0);
+        const time = Math.floor(epoch / 30);
+        const timeBuf = new ArrayBuffer(8);
+        const view = new DataView(timeBuf);
+        view.setUint32(4, time); // Set lower 32 bits
+
+        const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+        const signature = await crypto.subtle.sign("HMAC", cryptoKey, timeBuf);
+        const hmac = new Uint8Array(signature);
+        const offset = hmac[hmac.length - 1] & 0x0f;
+        const code = ((hmac[offset] & 0x7f) << 24) | ((hmac[offset + 1] & 0xff) << 16) | ((hmac[offset + 2] & 0xff) << 8) | (hmac[offset + 3] & 0xff);
+        const otp = (code % 1000000).toString().padStart(6, "0");
+        const timeLeft = 30 - (epoch % 30);
+        return { otp, timeLeft };
+    } catch (e) { return null; }
 }
 
-function executeWipe() {
-    if (confirm(i18n('wipe_final_confirm'))) {
-        localStorage.clear();
-        location.reload();
-    }
-    WIPE_PENDING = false;
-}
-
-// --- UI Sheets & Helpers ---
-function uiOpenSheet(id) {
-    document.getElementById('appOverlay').classList.add('active');
-    document.getElementById(id).classList.add('active');
-    
-    if(id === 'sheetEditItem') {
-        window.editingId = null;
-        document.getElementById('editTitle').value = '';
-        document.getElementById('editUser').value = '';
-        document.getElementById('editPass').value = '';
-        document.getElementById('editUrl').value = '';
-        document.getElementById('editNotes').value = '';
-        document.getElementById('editHeaderTitle').textContent = 'New Item';
-        document.getElementById('editDeleteBtn').style.display = 'none';
-        appUpdateStrengthMeter();
-    }
-}
-
+// --- Global Helpers ---
 function uiCloseAllSheets() {
     document.getElementById('appOverlay').classList.remove('active');
     document.querySelectorAll('.sheet').forEach(el => el.classList.remove('active'));
@@ -958,4 +1003,94 @@ function uiCloseAllSheets() {
 
 function escapeHTML(str) {
     return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function handleVaultBakImport(text) {
+    let rawData = text.trim();
+    let encryptedBlob = null;
+
+    // Strategy 1: Try raw JSON wrapper
+    try {
+        const parsed = JSON.parse(rawData);
+        if (parsed && parsed.vault_backup === true && typeof parsed.data === 'string') {
+            encryptedBlob = parsed.data;
+        }
+    } catch(e) {}
+
+    // Strategy 2: Try Base64-encoded JSON wrapper
+    if (!encryptedBlob) {
+        try {
+            const decoded = atob(rawData);
+            if (decoded.trim().startsWith('{')) {
+                const parsed = JSON.parse(decoded);
+                if (parsed && parsed.vault_backup === true && typeof parsed.data === 'string') {
+                    encryptedBlob = parsed.data;
+                }
+            }
+        } catch(e) {}
+    }
+
+    // Strategy 3: Direct encrypted blob
+    const finalBlob = encryptedBlob || rawData;
+
+    const pw = prompt('Enter password to decrypt .vaultbak:');
+    if(!pw) return showToast('Import cancelled', true);
+
+    try {
+        const dec = await decryptData(finalBlob, pw);
+        const data = JSON.parse(dec);
+        const entries = data.entries || data.items || (Array.isArray(data) ? data : []);
+        
+        if(entries.length > 0) {
+            mergeEntries(entries);
+            showToast(`✅ ${entries.length} items imported from backup`);
+        } else {
+            showToast('Backup empty or invalid format', true);
+        }
+    } catch(e) {
+        showToast(`❌ Decryption failed: Wrong password`, true);
+    }
+}
+
+function handleCSVImport(text) {
+    try {
+        const rows = parseCSV(text);
+        const items = processCSVData(rows);
+        if(items.length > 0) {
+            mergeEntries(items);
+            showToast(`✅ ${items.length} items imported from CSV`);
+        } else {
+            showToast('No valid data found in CSV', true);
+        }
+    } catch(e) {
+        showToast('❌ Failed to read CSV', true);
+    }
+}
+
+function handleJSONImport(text) {
+    try {
+        const data = JSON.parse(text);
+        let items = [];
+        if (data.items && Array.isArray(data.items)) {
+            items = data.items.map(i => ({
+                title: i.name,
+                username: i.login?.username,
+                password: i.login?.password,
+                url: i.login?.uris?.[0]?.uri,
+                totpSecret: i.login?.totp,
+                notes: i.notes
+            }));
+        } 
+        else if (Array.isArray(data)) items = data;
+        else if (data.passwords && Array.isArray(data.passwords)) items = data.passwords;
+
+        if (items.length > 0) {
+            mergeEntries(items);
+            showToast(`✅ ${items.length} items imported from JSON`);
+        } else {
+            showToast('Could not find password data in JSON', true);
+        }
+    } catch(e) {
+        showToast('❌ Failed to parse JSON', true);
+    }
 }

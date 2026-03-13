@@ -251,6 +251,15 @@ function bindEvents() {
   document.getElementById('openVaultImportBtn')?.addEventListener('click', () => chrome.tabs.create({ url: chrome.runtime.getURL('setup.html') }));
   document.getElementById('changeMasterBtn')?.addEventListener('click', changeMasterPassword);
 
+  // --- Universal Importer ---
+  const triggerBtn = document.getElementById('triggerImportBtn');
+  const importFileInp = document.getElementById('universalImportFile');
+  if (triggerBtn && importFileInp) {
+    triggerBtn.addEventListener('click', () => importFileInp.click());
+    importFileInp.addEventListener('change', handleUniversalImport);
+  }
+  document.getElementById('confirmImportVaultBtn')?.addEventListener('click', handleVaultbakUnlock);
+
   // Save button with feedback
   const saveAllBtn = document.getElementById('saveSettingsBtn');
   if (saveAllBtn) {
@@ -525,4 +534,184 @@ function setStorage(key, value) {
     });
   });
 })();
+
+// ── UNIVERSAL IMPORTER LOGIC ───────────────────────────────────────────────
+let _pendingImportFiles = [];
+let _importedResults = [];
+
+async function handleUniversalImport(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  const statusArea = document.getElementById('importStatusArea');
+  const loading = document.getElementById('importLoading');
+  const resMsg = document.getElementById('importResultMsg');
+  const pPrompt = document.getElementById('importPasswordPrompt');
+
+  statusArea.style.display = 'block';
+  loading.style.display = 'flex';
+  resMsg.textContent = '';
+  pPrompt.style.display = 'none';
+
+  _pendingImportFiles = files;
+  _importedResults = [];
+
+  let count = 0;
+  let hasVaultbak = false;
+
+  for (const f of files) {
+    if (f.name.toLowerCase().endsWith('.vaultbak')) {
+      hasVaultbak = true;
+      continue;
+    }
+    try {
+      const text = await readFile(f);
+      const items = await Importer.smartParse(text, f.name);
+      if (items && items.length) {
+        _importedResults.push(...items);
+        count += items.length;
+      }
+    } catch (err) {
+      console.warn('Import fail:', f.name, err);
+    }
+  }
+
+  loading.style.display = 'none';
+
+  if (hasVaultbak) {
+    resMsg.textContent = (count > 0 ? `✅ ${count} entries found. ` : '') + '🔐 .vaultbak detect hua — password daalo:';
+    pPrompt.style.display = 'block';
+  } else if (count > 0) {
+    await mergeAndSave(count);
+  } else {
+    resMsg.textContent = '❌ Koi valid password data nahi mila.';
+    setTimeout(() => { statusArea.style.display = 'none'; }, 3000);
+  }
+}
+
+async function handleVaultbakUnlock() {
+  const pw = document.getElementById('importVaultPass').value;
+  if (!pw) return alert('Password zaroori hai');
+
+  const vFiles = _pendingImportFiles.filter(f => f.name.toLowerCase().endsWith('.vaultbak'));
+  let total = 0;
+
+  for (const f of vFiles) {
+    try {
+      const buf = await readFileAsBuffer(f);
+      const rawText = new TextDecoder().decode(buf).trim();
+      let encryptedData = null;
+
+      // Robust check matches setup.js
+      try {
+        const p = JSON.parse(rawText);
+        if (p.vault_backup && p.data) encryptedData = p.data;
+      } catch (e) {}
+
+      if (!encryptedData) {
+        try {
+          const d = atob(rawText);
+          if (d.startsWith('{')) {
+            const p = JSON.parse(d);
+            if (p.vault_backup && p.data) encryptedData = p.data;
+          }
+        } catch (e) {}
+      }
+      
+      if (!encryptedData) encryptedData = rawText; // Fallback to raw
+
+      const dec = await VaultCrypto.decrypt(encryptedData, pw);
+      const data = JSON.parse(dec);
+      const entries = data.entries || data.items || (Array.isArray(data) ? data : []);
+      if (entries.length) {
+        _importedResults.push(...entries.map(Importer.norm));
+        total += entries.length;
+      }
+    } catch (err) {
+      console.error('Vaultbak error:', err);
+    }
+  }
+
+  if (total > 0 || _importedResults.length > 0) {
+    await mergeAndSave(_importedResults.length);
+  } else {
+    alert('❌ Decryption failed ya file khali hai. Password check karein.');
+  }
+}
+
+async function mergeAndSave(count) {
+  const statusArea = document.getElementById('importStatusArea');
+  const resMsg = document.getElementById('importResultMsg');
+  const pPrompt = document.getElementById('importPasswordPrompt');
+
+  resMsg.textContent = `⏳ ${count} entries vault mein merge ho rahi hain...`;
+  pPrompt.style.display = 'none';
+
+  try {
+    const sess = await chrome.runtime.sendMessage({ type: 'GET_SESSION' });
+    if (!sess || !sess.ok) {
+      resMsg.textContent = '❌ Vault Locked! Pehle extension unlock karein phir import karein.';
+      return;
+    }
+
+    // Get current entries
+    const blob = await getStorage('vault_encrypted_blob');
+    let current = [];
+    if (blob) {
+      const json = await VaultCrypto.decrypt(blob, sess.masterPassword);
+      current = JSON.parse(json);
+    }
+
+    let added = 0;
+    _importedResults.forEach(n => {
+      const dup = current.find(x => 
+        (x.url || '').toLowerCase() === (n.url || '').toLowerCase() && 
+        (x.username || '').toLowerCase() === (n.username || '').toLowerCase()
+      );
+      if (!dup) {
+        const now = Date.now();
+        current.push({
+          id: 'v_' + Math.random().toString(36).substr(2),
+          title: n.title || (n.url ? n.url.split('/')[0] : 'Imported'),
+          url: n.url || '',
+          username: n.username || '',
+          password: n.password,
+          mobile: n.mobile || '',
+          notes: n.notes || '',
+          totp: n.totp || '',
+          createdAt: now,
+          updatedAt: now
+        });
+        added++;
+      }
+    });
+
+    const newBlob = await VaultCrypto.encrypt(JSON.stringify(current), sess.masterPassword);
+    await setStorage('vault_encrypted_blob', newBlob);
+    chrome.runtime.sendMessage({ type: 'INVALIDATE_CACHE' }).catch(() => {});
+
+    resMsg.textContent = `✅ Success! ${added} naye items add kiye gaye.`;
+    setTimeout(() => { statusArea.style.display = 'none'; }, 4000);
+    showToast(`✅ ${added} items successfully imported!`, 'success');
+
+  } catch (err) {
+    resMsg.textContent = '❌ Import failed: ' + err.message;
+  }
+}
+
+function readFile(file) {
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.readAsText(file);
+  });
+}
+
+function readFileAsBuffer(file) {
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.readAsArrayBuffer(file);
+  });
+}
 

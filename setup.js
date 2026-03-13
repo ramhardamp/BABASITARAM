@@ -497,17 +497,30 @@ async function handleVaultbakDecrypt() {
 
       let encryptedData = null;
 
-      // Strategy 1: New v2 format — JSON wrapper with VaultCrypto-encrypted data
-      // {"vault_backup":true, "v":2, "data":"<base64>"}
+      // Strategy 1: New v2 format — JSON wrapper
       try {
         const parsed = JSON.parse(rawText);
         if (parsed && parsed.vault_backup === true && typeof parsed.data === 'string') {
           encryptedData = parsed.data;
           console.log('[Vault Restore] Found v2 JSON wrapper format');
         }
-      } catch(e) { /* not JSON, try other formats */ }
+      } catch(e) { }
 
-      // Strategy 2: Raw base64 VaultCrypto blob (direct encrypted string)
+      // Strategy 2: Base64-encoded JSON wrapper (APK legacy/alternate format)
+      if (!encryptedData) {
+        try {
+          const decoded = atob(rawText);
+          if (decoded.trim().startsWith('{')) {
+            const parsed = JSON.parse(decoded);
+            if (parsed && parsed.vault_backup === true && typeof parsed.data === 'string') {
+              encryptedData = parsed.data;
+              console.log('[Vault Restore] Found b64-wrapped JSON format');
+            }
+          }
+        } catch(e) { }
+      }
+
+      // Strategy 3: Raw base64 VaultCrypto blob
       if (!encryptedData) {
         const cleaned = rawText.replace(/\s/g, '');
         if (cleaned.length >= 40 && /^[A-Za-z0-9+\/=]+$/.test(cleaned)) {

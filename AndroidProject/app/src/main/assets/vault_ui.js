@@ -17,7 +17,45 @@ function appReadItem(id) {
         showToast(item.starred ? 'पसंदीदा में जोड़ा गया' : 'पसंदीदा से हटाया गया');
     };
 
-    let html = '';
+    // Type Badge
+    const typeNames = { login: '🔐 Login', card: '💳 Card', identity: '🆔 Identity', note: '📝 Note' };
+    const typeLabel = typeNames[item.type] || '🔐 Login';
+
+    let html = `
+        <div style="background:var(--brand-primary); color:white; font-size:10px; padding:2px 8px; border-radius:10px; width:fit-content; margin-bottom:12px; font-weight:700;">${typeLabel}</div>
+    `;
+
+    if(item.type === 'card') {
+        html += `
+            <div class="input-label">Card Number</div>
+            <div class="read-field" onclick="copyToClip('${escapeHTML(item.cardNumber)}')">
+                <div class="read-text mono">${escapeHTML(item.cardNumber)}</div>
+                <button class="icon-btn" style="border:none">📋</button>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+                <div>
+                   <div class="input-label">Expiry</div>
+                   <div class="read-field"><div class="read-text">${escapeHTML(item.cardExp)}</div></div>
+                </div>
+                <div>
+                   <div class="input-label">CVV</div>
+                   <div class="read-field" onclick="copyToClip('${escapeHTML(item.cardCvv)}')">
+                       <div class="read-text">•••</div>
+                       <button class="icon-btn" style="border:none">📋</button>
+                   </div>
+                </div>
+            </div>
+        `;
+    } else if(item.type === 'identity') {
+        html += `
+            <div class="input-label">ID Number</div>
+            <div class="read-field" onclick="copyToClip('${escapeHTML(item.idNumber)}')">
+                <div class="read-text mono">${escapeHTML(item.idNumber)}</div>
+                <button class="icon-btn" style="border:none">📋</button>
+            </div>
+        `;
+    }
+
     if(item.username) {
         html += `
         <div class="input-label">Username / Email</div>
@@ -73,8 +111,10 @@ function appReadItem(id) {
     }
 
     html += `
+    <div id="historyArea" style="display:none; margin-top:16px;"></div>
     <div style="display:flex; gap:12px; margin-top:24px">
-        <button class="btn btn-" style="flex:1" onclick="appEditItem('${id}')">✏️ Edit</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="toggleHistory('${id}')">⏳ History</button>
+        <button class="btn btn-primary" style="flex:1" onclick="appEditItem('${id}')">✏️ Edit</button>
     </div>`;
 
     document.getElementById('readBody').innerHTML = html;
@@ -95,6 +135,7 @@ function uiOpenSheet(id) {
     document.getElementById(id).classList.add('active');
     
     if(id === 'sheetEditItem' && !window.editingId) {
+        document.getElementById('editType').value = 'login';
         document.getElementById('editTitle').value = '';
         document.getElementById('editUser').value = '';
         document.getElementById('editMobile').value = '';
@@ -103,8 +144,16 @@ function uiOpenSheet(id) {
         document.getElementById('editCategory').value = 'Other';
         document.getElementById('editUrl').value = '';
         document.getElementById('editNotes').value = '';
+        
+        document.getElementById('editCardName').value = '';
+        document.getElementById('editCardNumber').value = '';
+        document.getElementById('editCardExp').value = '';
+        document.getElementById('editCardCvv').value = '';
+        document.getElementById('editIdNumber').value = '';
+
         document.getElementById('editHeaderTitle').textContent = 'नया आइटम';
         document.getElementById('editDeleteBtn').style.display = 'none';
+        uiUpdateTemplateFields();
         appUpdateStrengthMeter();
     }
 }
@@ -142,12 +191,24 @@ function appEditItem(id) {
     
     window.editingId = id;
     document.getElementById('editHeaderTitle').textContent = 'आइटम संपादित करें';
+    document.getElementById('editType').value = item.type || 'login';
     document.getElementById('editTitle').value = item.title || '';
     document.getElementById('editUser').value = item.username || '';
     document.getElementById('editMobile').value = item.mobile || '';
     document.getElementById('editPass').value = item.password || '';
     document.getElementById('editTotp').value = item.totpSecret || '';
     document.getElementById('editCategory').value = item.category || 'Other';
+    document.getElementById('editUrl').value = item.url || '';
+    document.getElementById('editNotes').value = item.notes || '';
+    
+    document.getElementById('editCardName').value = item.cardName || '';
+    document.getElementById('editCardNumber').value = item.cardNumber || '';
+    document.getElementById('editCardExp').value = item.cardExp || '';
+    document.getElementById('editCardCvv').value = item.cardCvv || '';
+    document.getElementById('editIdNumber').value = item.idNumber || '';
+
+    uiUpdateTemplateFields();
+    document.getElementById('editDeleteBtn').style.display = 'block';
     document.getElementById('editUrl').value = item.url || '';
     document.getElementById('editNotes').value = item.notes || '';
     
@@ -160,30 +221,36 @@ function appEditItem(id) {
 }
 
 function openAuditSheet() {
-    const weak = ENTRIES.filter(e => checkStrength(e.password) === 'weak').length;
-    const reused = findReusedPasswords().length;
+    const weakItems = ENTRIES.filter(e => checkStrength(e.password) === 'weak');
+    const reusedItems = findReusedPasswords();
+    const score = calculateSecurityScore();
     
     let html = `
-        <div style="background:var(--bg-base); padding:16px; border-radius:var(--radius-lg); margin-bottom:20px; border:1px solid var(--border);">
-            <div style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">सुरक्षा स्कोर</div>
-            <div style="font-size:24px; font-weight:800; color:var(--brand-secondary);">${calculateSecurityScore()}%</div>
+        <div style="background:var(--bg-elevated); padding:20px; border-radius:var(--radius-lg); margin-bottom:24px; text-align:center; border:1px solid var(--border);">
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Vault Health Score</div>
+            <div style="font-size:42px; font-weight:800; color:${score < 80 ? 'var(--warning)' : 'var(--brand-secondary)'};">${score}%</div>
+            <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">${score === 100 ? 'Your vault is bulletproof!' : 'Some improvements suggested.'}</div>
         </div>
+
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin:0 4px 12px; text-transform:uppercase;">Critical Issues</div>
         
-        <div class="item-card" style="margin-bottom:12px; cursor:default;">
-            <div class="item-avatar" style="background:var(--error-bg); color:var(--error);">⚠️</div>
-            <div class="item-details">
-                <div class="item-title">कमजोर पासवर्ड</div>
-                <div class="item-sub">${weak} पासवर्ड असुरक्षित पाए गए</div>
+        <div class="read-field" style="margin-bottom:12px; border-left:4px solid var(--error);">
+            <div style="font-size:20px;">⚠️</div>
+            <div style="flex:1">
+                <div style="font-size:15px; font-weight:700;">Weak Passwords</div>
+                <div style="font-size:12px; color:var(--text-muted);">${weakItems.length} items have insecure passwords</div>
             </div>
         </div>
         
-        <div class="item-card" style="margin-bottom:12px; cursor:default;">
-            <div class="item-avatar" style="background:var(--warning-bg); color:var(--warning);">🔄</div>
-            <div class="item-details">
-                <div class="item-title">दोहराए गए पासवर्ड</div>
-                <div class="item-sub">${reused} पासवर्ड एक से ज्यादा जगह इस्तेमाल हुए</div>
+        <div class="read-field" style="margin-bottom:24px; border-left:4px solid var(--warning);">
+            <div style="font-size:20px;">🔄</div>
+            <div style="flex:1">
+                <div style="font-size:15px; font-weight:700;">Reused Passwords</div>
+                <div style="font-size:12px; color:var(--text-muted);">${reusedItems.length} items sharing same password</div>
             </div>
         </div>
+
+        <button class="btn btn-primary" onclick="uiCloseAllSheets()">Got it</button>
     `;
     
     document.getElementById('auditBody').innerHTML = html;
@@ -192,8 +259,25 @@ function openAuditSheet() {
 
 function calculateSecurityScore() {
     if(!ENTRIES.length) return 100;
-    const weak = ENTRIES.filter(e => checkStrength(e.password) === 'weak').length;
-    const score = Math.max(0, 100 - (weak / ENTRIES.length * 100));
+    
+    let penalty = 0;
+    const reused = findReusedPasswords();
+    
+    ENTRIES.forEach(e => {
+        const pw = (e.password || '').toLowerCase();
+        // 1. Weak length / pattern penalty
+        if(checkStrength(e.password) === 'weak') penalty += 20;
+        else if(checkStrength(e.password) === 'medium') penalty += 5;
+        
+        // 2. Breach penalty
+        const isBreached = BREACHED_PATTERNS.some(p => pw.includes(p));
+        if(isBreached) penalty += 30;
+    });
+    
+    // 3. Reused penalty
+    penalty += (reused.length * 10);
+
+    const score = Math.max(0, 100 - (penalty / ENTRIES.length));
     return Math.round(score);
 }
 
@@ -204,6 +288,27 @@ function findReusedPasswords() {
         map[e.password].push(e);
     });
     return Object.values(map).filter(arr => arr.length > 1).flat();
+}
+
+function refreshSecurityHub() {
+    const score = calculateSecurityScore();
+    const display = document.getElementById('vaultScoreDisplay');
+    if(!display) return;
+    
+    display.textContent = score + '%';
+    
+    // Change color and pulse based on score
+    const card = display.closest('.health-card');
+    if(score < 50) {
+        card.style.background = 'linear-gradient(135deg, #ef4444, #f87171)';
+        card.classList.add('pulse');
+    } else if(score < 80) {
+        card.style.background = 'linear-gradient(135deg, #f59e0b, #fbbf24)';
+        card.classList.remove('pulse');
+    } else {
+        card.style.background = 'var(--brand-gradient)';
+        card.classList.remove('pulse');
+    }
 }
 
 // --- Dynamic Form Helpers ---
@@ -301,9 +406,98 @@ function uiSelectApp(name, pkg) {
     showToast(`${name} लिंक किया गया`);
 }
 
+function openLogsSheet() {
+    let html = `
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:16px; text-transform:uppercase; letter-spacing:1px;">Recent Activity (Last 50)</div>
+        <div style="display:flex; flex-direction:column; gap:8px; max-height:60vh; overflow-y:auto;">
+    `;
+
+    if(!LOGS.length) {
+        html += '<div class="empty-state">No logs recorded yet.</div>';
+    } else {
+        LOGS.forEach(l => {
+            const date = new Date(l.timestamp).toLocaleString();
+            html += `
+                <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span style="font-weight:700; font-size:13px; color:var(--brand-secondary);">${l.action}</span>
+                        <span style="font-size:10px; color:var(--text-muted);">${date}</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-secondary);">${escapeHTML(l.details)}</div>
+                </div>
+            `;
+        });
+    }
+
+    html += `</div><button class="btn btn-primary" onclick="uiCloseAllSheets()" style="margin-top:20px;">Close Audit Log</button>`;
+    document.getElementById('logsBody').innerHTML = html;
+    uiOpenSheet('sheetLogs');
+}
+
+function toggleHistory(id) {
+    const item = ENTRIES.find(x => x.id === id);
+    const histArea = document.getElementById('historyArea');
+    if(!item || !item.history || !item.history.length) return showToast('No history found');
+    
+    if(histArea.style.display === 'block') {
+        histArea.style.display = 'none';
+        return;
+    }
+
+    histArea.innerHTML = item.history.map(h => `
+        <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-size:10px; color:var(--text-muted);">${new Date(h.date).toLocaleDateString()}</div>
+                <div style="font-family:monospace; font-size:13px;">••••••••</div>
+            </div>
+            <button class="icon-btn" onclick="copyToClip('${escapeHTML(h.password)}'); showToast('Old password copied')">📋</button>
+        </div>
+    `).join('');
+    histArea.style.display = 'block';
+}
+
 function uiCloseSheet(id) {
     document.getElementById(id).classList.remove('active');
-    if(id !== 'sheetAppSelector') {
+    if(id !== 'sheetAppSelector' && id !== 'sheetLogs' && id !== 'sheetGenerator') {
         uiCloseAllSheets();
     }
+}
+
+function uiUpdateTemplateFields() {
+    const type = document.getElementById('editType').value;
+    document.getElementById('tmplLogin').style.display = (type === 'login') ? 'block' : 'none';
+    document.getElementById('tmplCard').style.display = (type === 'card') ? 'block' : 'none';
+    document.getElementById('tmplIdentity').style.display = (type === 'identity') ? 'block' : 'none';
+}
+
+function uiOpenGenerator() {
+    uiOpenSheet('sheetGenerator');
+    uiGenerateCustom();
+}
+
+function uiGenerateCustom() {
+    const len = parseInt(document.getElementById('genLen').value);
+    const upper = document.getElementById('genUpper').checked;
+    const num = document.getElementById('genNum').checked;
+    const sym = document.getElementById('genSym').checked;
+    
+    let charset = "abcdefghijklmnopqrstuvwxyz";
+    if(upper) charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if(num) charset += "0123456789";
+    if(sym) charset += "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+    
+    let retVal = "";
+    const arr = new Uint32Array(len);
+    window.crypto.getRandomValues(arr);
+    for (let i = 0; i < len; ++i) {
+        retVal += charset[arr[i] % charset.length];
+    }
+    document.getElementById('genDisplay').textContent = retVal;
+}
+
+function uiUseGenerated() {
+    const val = document.getElementById('genDisplay').textContent;
+    document.getElementById('editPass').value = val;
+    uiCloseSheet('sheetGenerator');
+    appUpdateStrengthMeter();
 }

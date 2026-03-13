@@ -25,24 +25,36 @@ public class VaultAutofillService extends AutofillService {
 
     @Override
     public void onFillRequest(FillRequest request, CancellationSignal cancellationSignal, FillCallback callback) {
-        AssistStructure structure = request.getFillContexts().get(request.getFillContexts().size() - 1).getStructure();
-        String packageName = structure.getActivityComponent().getPackageName();
-        
-        List<AutofillStore.Credential> saved = AutofillStore.getCredentials();
-        AutofillStore.Credential match = null;
-        for (AutofillStore.Credential c : saved) {
-            if (c.pkg != null && c.pkg.equals(packageName)) {
-                match = c;
-                break;
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            callback.onSuccess(null);
+            return;
         }
 
-        if (match != null) {
-            try {
+        try {
+            AssistStructure structure = request.getFillContexts().get(request.getFillContexts().size() - 1).getStructure();
+            if (structure == null || structure.getActivityComponent() == null) {
+                callback.onSuccess(null);
+                return;
+            }
+            
+            String packageName = structure.getActivityComponent().getPackageName();
+            List<AutofillStore.Credential> saved = AutofillStore.getCredentials();
+            AutofillStore.Credential match = null;
+            if (saved != null) {
+                for (AutofillStore.Credential c : saved) {
+                    if (c.pkg != null && c.pkg.equals(packageName)) {
+                        match = c;
+                        break;
+                    }
+                }
+            }
+
+            if (match != null) {
                 FillResponse.Builder responseBuilder = new FillResponse.Builder();
-                Dataset.Builder datasetBuilder = new Dataset.Builder(
-                    new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1)
-                );
+                RemoteViews presentation = new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1);
+                presentation.setTextViewText(android.R.id.text1, match.title != null ? match.title : "BABASITARAM Vault");
+                
+                Dataset.Builder datasetBuilder = new Dataset.Builder(presentation);
 
                 List<AutofillId> foundIds = new ArrayList<>();
                 int nodes = structure.getWindowNodeCount();
@@ -59,10 +71,8 @@ public class VaultAutofillService extends AutofillService {
                     callback.onSuccess(responseBuilder.build());
                     return;
                 }
-            } catch (Exception e) {}
-        }
-        
-        try {
+            }
+            
             FillResponse.Builder responseBuilder = new FillResponse.Builder();
             List<AutofillId> passwordIds = new ArrayList<>();
             int nodes = structure.getWindowNodeCount();
@@ -71,7 +81,7 @@ public class VaultAutofillService extends AutofillService {
             }
             
             if (!passwordIds.isEmpty()) {
-                AutofillId[] idArray = passwordIds.toArray(new AutofillId[0]);
+                 AutofillId[] idArray = passwordIds.toArray(new AutofillId[0]);
                 responseBuilder.setSaveInfo(new SaveInfo.Builder(
                     SaveInfo.SAVE_DATA_TYPE_PASSWORD, idArray).build());
                 callback.onSuccess(responseBuilder.build());
@@ -84,9 +94,10 @@ public class VaultAutofillService extends AutofillService {
     }
 
     private void findSaveableIds(AssistStructure.ViewNode node, List<AutofillId> ids) {
-        if (node == null) return;
+        if (node == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        
         String idEntry = node.getIdEntry();
-        if (node.getAutofillId() != null && idEntry != null) {
+        if (idEntry != null && node.getAutofillId() != null) {
             String idLower = idEntry.toLowerCase();
             if (idLower.contains("password") || idLower.contains("pass") || idLower.contains("user") || idLower.contains("email")) {
                 ids.add(node.getAutofillId());
@@ -98,7 +109,8 @@ public class VaultAutofillService extends AutofillService {
     }
 
     private void traverseStructure(AssistStructure.ViewNode node, Dataset.Builder builder, AutofillStore.Credential cred, List<AutofillId> idsFound) {
-        if (node == null) return;
+        if (node == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+
         String idEntry = node.getIdEntry();
         String hint = "";
         String[] hints = node.getAutofillHints();
@@ -106,16 +118,17 @@ public class VaultAutofillService extends AutofillService {
         
         AutofillId autofillId = node.getAutofillId();
         if (autofillId != null) {
+            RemoteViews presentation = new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1);
             if (idEntry != null) {
                 String idLower = idEntry.toLowerCase();
                 if (idLower.contains("password") || idLower.contains("pass") || idLower.contains("pwd") || hint.contains("password")) {
-                    builder.setValue(autofillId, AutofillValue.forText(cred.password), 
-                        new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
+                    presentation.setTextViewText(android.R.id.text1, "Password: " + cred.title);
+                    builder.setValue(autofillId, AutofillValue.forText(cred.password), presentation);
                     idsFound.add(autofillId);
                 }
                 else if (idLower.contains("username") || idLower.contains("user") || idLower.contains("email") || idLower.contains("login") || hint.contains("username") || hint.contains("email")) {
-                    builder.setValue(autofillId, AutofillValue.forText(cred.username),
-                        new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
+                    presentation.setTextViewText(android.R.id.text1, "Username: " + cred.username);
+                    builder.setValue(autofillId, AutofillValue.forText(cred.username), presentation);
                     idsFound.add(autofillId);
                 }
             }

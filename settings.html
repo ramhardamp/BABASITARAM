@@ -774,44 +774,52 @@
             </div>
           </section>
 
-          <!-- BACKUP CARD -->
-          <section class="card" style="margin-bottom: 20px;">
-            <div class="card-head">
-              <span style="font-size: 18px;">☁️</span>
-              <span class="card-head-title">Data Backup</span>
+        <!-- IMPORT & EXPORT CARD -->
+        <section class="card" style="margin-bottom: 20px;">
+          <div class="card-head">
+            <span style="font-size: 18px;">🔄</span>
+            <span class="card-head-title">Import & Data Tools</span>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="row-info">
+                <div class="row-label">Universal Importer</div>
+                <div class="row-desc">CSV, JSON ya .vaultbak file se data merge karein</div>
+              </div>
+              <button class="btn btn-primary" id="triggerImportBtn">📤 Import Files</button>
+              <input type="file" id="universalImportFile" style="display:none" accept=".csv,.json,.vaultbak,.txt" multiple>
             </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="row-info">
-                  <div class="row-label">Encrypted Backups</div>
-                  <div class="row-desc">Backup files hamesha secure rahengi</div>
+            
+            <div id="importStatusArea" style="display:none; padding: 12px; margin-top: 10px; border-radius: 12px; font-size: 12px; background: rgba(192, 132, 252, 0.05); border: 1px dashed rgba(192, 132, 252, 0.3);">
+                <div id="importLoading" style="display:none; align-items:center; gap: 8px; color: var(--accent2);">
+                    <div class="spinner" style="width:14px; height:14px; border-width:2px;"></div>
+                    <span>Data analyze ho raha hai...</span>
                 </div>
-                <div class="toggle on" id="encryptBackupToggle"></div>
-              </div>
+                <div id="importResultMsg" style="font-weight: 600;"></div>
+                <div id="importPasswordPrompt" style="display:none; margin-top: 10px;">
+                    <div style="font-size: 11px; margin-bottom: 6px; color: var(--accent2);">🔐 .vaultbak ke liye Master Password:</div>
+                    <div style="display:flex; gap: 8px;">
+                        <input type="password" id="importVaultPass" placeholder="Purana password" style="flex:1; padding: 6px 10px;">
+                        <button class="btn btn-primary" id="confirmImportVaultBtn" style="padding: 6px 12px;">Unlock</button>
+                    </div>
+                </div>
+            </div>
 
-              <div class="row">
-                <div class="row-info">
-                  <div class="row-label">Auto-Backup on Change</div>
-                  <div class="row-desc">Har badlav par automatically backup file banegi</div>
-                </div>
-                <div class="toggle" id="autoBackupToggle"></div>
+            <div class="row" style="margin-top: 10px;">
+              <div class="row-info">
+                <div class="row-label">Offline Backup</div>
+                <div class="row-desc">Turant .vaultbak file download karein</div>
               </div>
-
-              <div class="row">
-                <div class="row-info">
-                  <div class="row-label">Offline Backup</div>
-                  <div class="row-desc">Turant .vaultbak file download karein (vault-backup-latest.vaultbak)</div>
-                </div>
-                <button class="btn btn-secondary" id="manualBackupBtn">📥 Export Now</button>
-              </div>
-              <div class="row" id="lastBackupRow" style="display:none">
-                <div class="row-info">
-                  <div class="row-label" style="color:#22d3a5;font-size:12px">✅ Last Auto-Backup</div>
-                  <div class="row-desc" id="lastBackupTime">—</div>
-                </div>
+              <button class="btn btn-secondary" id="manualBackupBtn">📥 Export Now</button>
+            </div>
+            <div class="row" id="lastBackupRow" style="display:none">
+              <div class="row-info">
+                <div class="row-label" style="color:#22d3a5;font-size:12px">✅ Last Auto-Backup</div>
+                <div class="row-desc" id="lastBackupTime">—</div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
           <!-- APPEARANCE CARD -->
           <section class="card" style="margin-bottom: 20px;">
@@ -872,6 +880,7 @@
     </div>
 
     <script src="src/crypto.js"></script>
+    <script src="src/importer.js"></script>
     <script src="src/vault-health.js"></script>
     <script src="src/theme.js"></script>
     <script src="settings.js"></script>
