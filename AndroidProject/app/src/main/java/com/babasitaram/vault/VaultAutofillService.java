@@ -78,9 +78,10 @@ public class VaultAutofillService extends AutofillService {
     }
 
     private void findSaveableIds(AssistStructure.ViewNode node, List<AutofillId> ids) {
-        String id = node.getIdEntry();
-        if (node.getAutofillId() != null && id != null) {
-            if (id.contains("password") || id.contains("pass") || id.contains("user") || id.contains("email")) {
+        String idEntry = node.getIdEntry();
+        if (node.getAutofillId() != null && idEntry != null) {
+            String idLower = idEntry.toLowerCase();
+            if (idLower.contains("password") || idLower.contains("pass") || idLower.contains("user") || idLower.contains("email")) {
                 ids.add(node.getAutofillId());
             }
         }
@@ -90,24 +91,25 @@ public class VaultAutofillService extends AutofillService {
     }
 
     private void traverseStructure(AssistStructure.ViewNode node, Dataset.Builder builder, AutofillStore.Credential cred, List<AutofillId> idsFound) {
-        String id = node.getIdEntry();
+        String idEntry = node.getIdEntry();
         String hint = "";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String[] hints = node.getAutofillHints();
-            if (hints != null && hints.length > 0) hint = hints[0].toLowerCase();
-        }
+        String[] hints = node.getAutofillHints();
+        if (hints != null && hints.length > 0) hint = hints[0].toLowerCase();
         
         AutofillId autofillId = node.getAutofillId();
         if (autofillId != null) {
-            if (id != null && (id.contains("password") || id.contains("pass") || id.contains("pwd")) || hint.contains("password")) {
-                builder.setValue(autofillId, AutofillValue.forText(cred.password), 
-                    new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
-                idsFound.add(autofillId);
-            }
-            else if (id != null && (id.contains("username") || id.contains("user") || id.contains("email") || id.contains("login")) || hint.contains("username") || hint.contains("email")) {
-                builder.setValue(autofillId, AutofillValue.forText(cred.username),
-                    new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
-                idsFound.add(autofillId);
+            if (idEntry != null) {
+                String idLower = idEntry.toLowerCase();
+                if (idLower.contains("password") || idLower.contains("pass") || idLower.contains("pwd") || hint.contains("password")) {
+                    builder.setValue(autofillId, AutofillValue.forText(cred.password), 
+                        new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
+                    idsFound.add(autofillId);
+                }
+                else if (idLower.contains("username") || idLower.contains("user") || idLower.contains("email") || idLower.contains("login") || hint.contains("username") || hint.contains("email")) {
+                    builder.setValue(autofillId, AutofillValue.forText(cred.username),
+                        new RemoteViews(getPackageName(), android.R.layout.simple_list_item_1));
+                    idsFound.add(autofillId);
+                }
             }
         }
 
@@ -118,13 +120,6 @@ public class VaultAutofillService extends AutofillService {
 
     @Override
     public void onSaveRequest(SaveRequest request, SaveCallback callback) {
-        // When user hits 'Save' on the Android system popup
-        List<FillContext> contexts = request.getFillContexts();
-        AssistStructure structure = contexts.get(contexts.size() - 1).getStructure();
-        
-        // This is where we would extract data and send to MainActivity to save.
-        // For security, BABASITARAM Vault will show a notification to 'Review and Save' 
-        // once the app is unlocked.
         callback.onSuccess();
     }
 }

@@ -27,10 +27,8 @@ jobs:
           build-root-directory: ./AndroidProject
 
       - name: Build with Gradle
-        run: |
-          chmod +x ./AndroidProject/gradlew
-          cd AndroidProject
-          ./gradlew assembleDebug --stacktrace --info
+        run: gradle assembleDebug --stacktrace --info
+        working-directory: ./AndroidProject
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

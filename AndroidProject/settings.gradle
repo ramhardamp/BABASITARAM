@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "BABASITARAM Vault"
+rootProject.name = "BABASITARAM_Vault"
 include ':app'
