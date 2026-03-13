@@ -11,6 +11,7 @@ import android.service.autofill.SaveCallback;
 import android.service.autofill.SaveRequest;
 import android.annotation.TargetApi;
 import android.widget.Toast;
+import java.util.ArrayList;
 import java.util.List;
 
 @TargetApi(Build.VERSION_CODES.O)
