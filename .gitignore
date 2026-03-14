@@ -1,0 +1,26 @@
+# Android build outputs
+apk/app/build/
+apk/build/
+apk/.gradle/
+apk/local.properties
+
+# Gradle cache (keep wrapper jar)
+!apk/gradle/wrapper/gradle-wrapper.jar
+!apk/gradle/wrapper/gradle-wrapper.properties
+!apk/gradlew
+!apk/gradlew.bat
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+# Temp scripts
+*.ps1
+fix*.cs
+fix*.exe
+
+# Node / web
+node_modules/

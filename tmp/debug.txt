@@ -1,0 +1,12 @@
+﻿LOCK SCREEN -->
+    <div id="lockScreen">
+        <div class="lc">
+            <div class="lc-logo">
+                <div class="lc-icon"><img src="icon.png" onerror="this.parentElement.innerHTML='🔐';this.parentElement.style.background='linear-gradient(135deg,rgba(59,130,246,.18),rgba(139,92,246,.18))';this.parentElement.style.border='1px solid rgba(59,130,246,.25)';this.parentElement.style.fontSize='36px'" alt="BSR"></div>
+                <div class="lc-title">BabaSitaRam Pro</div>
+                <div class="lc-sub">Proprietary Password Manager</div>
+            </div>
+            <div class="ltabs">
+                <button class="ltab on" onclick="swTab('unlock',this)">🔓 Unlock</button>
+                <button class="ltab" onclick="swTab('setup',this)">⚙️ Setup</button>
+              
