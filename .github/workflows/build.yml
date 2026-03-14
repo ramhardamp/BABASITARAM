@@ -3,9 +3,7 @@ name: Build BabaSitaRam Pro APK
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:  # Manual trigger button on GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -27,7 +25,7 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x apk/gradlew
 
-      - name: Cache Gradle packages
+      - name: Cache Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -36,29 +34,36 @@ jobs:
           key: gradle-${{ hashFiles('apk/**/*.gradle*', 'apk/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
+      - name: Show project structure
+        run: |
+          echo "=== Project files ==="
+          find apk -name "*.gradle" -o -name "*.xml" -o -name "*.java" | head -30
+          echo "=== app/build.gradle ==="
+          cat apk/app/build.gradle
+          echo "=== strings.xml ==="
+          cat apk/app/src/main/res/values/strings.xml
+
       - name: Build Debug APK
         working-directory: apk
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1
 
       - name: Upload Debug APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: BabaSitaRam-Pro-v3.1-debug
           path: apk/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Build Release APK (unsigned)
+      - name: Build Release APK
+        if: success()
         working-directory: apk
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon 2>&1
 
       - name: Upload Release APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: BabaSitaRam-Pro-v3.1-release
           path: apk/app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 30
-
-      - name: Show APK info
-        run: |
-          echo "=== Build Complete ==="
-          find apk/app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
