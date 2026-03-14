@@ -1,2 +1,2 @@
-rootProject.name = "BabaSitaRam Pro"
+rootProject.name = "BabaSitaRam"
 include ':app'
