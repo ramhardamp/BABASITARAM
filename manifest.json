@@ -1,55 +1,16 @@
 {
-  "manifest_version": 3,
-  "name": "BABASITARAM Vault",
-  "version": "5.11",
-  "description": "Secure password manager with AES-GCM encryption, human typing autofill, and auto-start support.",
-  "permissions": [
-    "bookmarks",
-    "favicon",
-    "storage",
-    "unlimitedStorage",
-    "activeTab",
-    "scripting",
-    "clipboardWrite",
-    "downloads",
-    "sidePanel",
-    "alarms"
+  "name": "VaultX Pro — Password Manager",
+  "short_name": "VaultX",
+  "description": "Secure Offline Password Manager — VaultX Proprietary",
+  "start_url": "./vaultx-mobile.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07090f",
+  "theme_color": "#3b82f6",
+  "icons": [
+    { "src": "icons/icon192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
-  "side_panel": {
-    "default_path": "sidepanel.html"
-  },
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
-  },
-  "background": {
-    "service_worker": "src/background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "src/content.js"
-      ],
-      "run_at": "document_start"
-    }
-  ],
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  },
-  "version_name": "BABASITARAM Vault v5.11 - Silent Auto-Save Fix"
+  "categories": ["utilities", "productivity"],
+  "lang": "hi"
 }

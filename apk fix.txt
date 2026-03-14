@@ -1,0 +1,37 @@
+VaultX Pro v2.1 — पूरी तरह Updated! 🔐
+🆕 सभी Fixes & New Features:
+🔑 Import .vaultbak with Master Password (FIXED)
+
+Restore tab पर जाएं → वही Master Password डालें जिससे backup बनाया था
+AES-256-GCM encryption — wrong password = decrypt नहीं होगा
+New vault password भी set कर सकते हैं
+
+📥 Import सभी Formats (NEW)
+
+✅ .vaultbak — Encrypted (Master Password required)
+✅ .json — VaultX / Bitwarden / Chrome JSON
+✅ .csv — Chrome / Bitwarden / 1Password CSV
+Merge या Replace All option
+
+☝️ Fingerprint (WebAuthn) — FIXED
+
+Settings → Fingerprint toggle ON करें
+⚠️ HTTPS required — file:// में काम नहीं, server पर host करें
+Note साफ दिखता है अगर support नहीं है
+
+🤖 Autofill Setup (NEW)
+
+Chrome, Firefox, Android, Samsung, Edge, Brave, Bitwarden guides
+Step-by-step instructions
+Quick Copy section — जब browser fill न करे
+
+🐛 Bug Fixes
+
+Copy clipboard fallback (older browsers)
+Search fix across all pages
+Sort buttons properly work
+Modal background click से close
+Autolock properly reset होता है
+Password manager proCode · HTML 
+
+1 

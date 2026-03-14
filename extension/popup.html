@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BabaSitaRam Pro</title>
+<style>
+  :root{--bg:#07090f;--s:#0d1117;--s2:#121820;--s3:#171f2e;--b:rgba(56,139,253,.12);--ac:#3b82f6;--a2:#06b6d4;--a3:#8b5cf6;--ok:#10b981;--er:#ef4444;--wn:#f59e0b;--tx:#e2e8f0;--t2:#94a3b8;--t3:#4a5568;--r:10px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:360px;min-height:480px;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px}
+  .hdr{background:var(--s);border-bottom:1px solid var(--b);padding:12px 14px;display:flex;align-items:center;gap:10px}
+  .hdr-ic{width:32px;height:32px;background:linear-gradient(135deg,var(--ac),var(--a2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .hdr-t{font-size:15px;font-weight:800;letter-spacing:-.3px}
+  .hdr-s{font-size:9px;color:var(--t3);margin-top:1px}
+  .lock-wrap{padding:20px 16px}
+  .il{font-size:10px;color:var(--t2);margin-bottom:6px;display:block;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .inp{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:9px 12px;color:var(--tx);font-size:12px;outline:none;transition:border .2s;font-family:monospace}
+  .inp:focus{border-color:var(--ac)}
+  .ipw{position:relative;margin-bottom:12px}
+  .ipw .inp{padding-right:36px}
+  .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--t2);font-size:13px}
+  .btn-pri{width:100%;background:linear-gradient(135deg,var(--ac),var(--a2));border:none;border-radius:var(--r);padding:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px}
+  .btn-pri:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,.35)}
+  .btn-pri:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .btn-bio{width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:var(--r);padding:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px}
+  .btn-bio:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,58,237,.35)}
+  .bio-hint{font-size:9px;color:var(--t3);text-align:center;margin-top:6px}
+  .err-msg{color:var(--er);font-size:11px;text-align:center;margin-top:8px;display:none}
+  /* APP */
+  #app{display:none}
+  .tabs{display:flex;background:var(--s2);border-bottom:1px solid var(--b)}
+  .tab{flex:1;padding:9px 2px;background:none;border:none;color:var(--t2);font-size:9px;font-weight:700;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
+  .tab.on{color:var(--a2);border-bottom-color:var(--ac)}
+  .pg{display:none;padding:12px 14px;max-height:400px;overflow-y:auto}
+  .pg.on{display:block}
+  /* Search */
+  .srch-w{position:relative;margin-bottom:10px}
+  .srch-w span{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:11px;pointer-events:none}
+  .srch{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:7px 10px 7px 28px;color:var(--tx);font-size:11px;outline:none}
+  .srch:focus{border-color:var(--ac)}
+  /* Password cards */
+  .pwc{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:10px 12px;margin-bottom:8px;transition:all .15s}
+  .pwc:hover{border-color:rgba(56,139,253,.25)}
+  .pwc-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .pwc-ic{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .pwc-site{font-size:12px;font-weight:800;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pwc-cat{font-size:8px;font-weight:700;padding:2px 6px;border-radius:8px;text-transform:uppercase}
+  .pwc-row{display:flex;align-items:center;gap:6px;background:var(--s2);border-radius:6px;padding:5px 8px;margin-bottom:4px;font-family:monospace;font-size:10px}
+  .pwc-lbl{color:var(--t3);width:14px;text-align:center;flex-shrink:0}
+  .pwc-val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx)}
+  .pwc-val.hide{color:var(--t2);letter-spacing:2px}
+  .cp-btn{background:none;border:none;cursor:pointer;color:var(--t2);font-size:11px;padding:1px 3px;border-radius:3px;transition:color .15s;flex-shrink:0}
+  .cp-btn:hover{color:var(--ok)}
+  .fill-btn{width:100%;background:linear-gradient(135deg,var(--ac),var(--a2));border:none;border-radius:6px;padding:6px;color:#fff;font-size:10px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .15s}
+  .fill-btn:hover{transform:translateY(-1px)}
+  .str-bar{height:2px;border-radius:2px;background:var(--s3);overflow:hidden;margin-top:6px}
+  .str-fill{height:100%;border-radius:2px;transition:width .3s}
+  .str-lbl{font-size:8px;font-weight:700;margin-top:2px}
+  .empty{text-align:center;padding:30px 16px;color:var(--t2)}
+  .empty-ic{font-size:32px;opacity:.3;margin-bottom:8px}
+  .empty-t{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:4px}
+  /* Import tab */
+  .imp-info{background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;font-size:10px;color:var(--a2);line-height:1.7}
+  .imp-warn{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:10px;color:var(--er);line-height:1.6}
+  .btn-sec{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:9px;color:var(--a2);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px}
+  .btn-sec:hover{background:var(--s3);border-color:var(--ac)}
+  .fmt-btn{flex:1;padding:5px 4px;background:var(--s2);border:1px solid var(--b);border-radius:6px;color:var(--t2);font-size:9px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
+  .fmt-btn.on{background:rgba(59,130,246,.12);color:var(--a2);border-color:rgba(59,130,246,.3)}
+  /* Toast */
+  .toast{position:fixed;bottom:12px;right:12px;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;z-index:9999;transform:translateY(60px);opacity:0;transition:all .2s;max-width:240px}
+  .toast.show{transform:none;opacity:1}
+  .toast.ok{border-color:rgba(16,185,129,.3);color:var(--ok)}
+  .toast.er{border-color:rgba(239,68,68,.3);color:var(--er)}
+  .toast.wn{border-color:rgba(245,158,11,.3);color:var(--wn)}
+  /* Site badge */
+  .site-badge{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);border-radius:6px;padding:6px 10px;margin-bottom:10px;font-size:10px;color:var(--a2);display:flex;align-items:center;gap:6px}
+  .cat-social{background:rgba(59,130,246,.12);color:#60a5fa}
+  .cat-banking{background:rgba(16,185,129,.12);color:#34d399}
+  .cat-email{background:rgba(245,158,11,.12);color:#fcd34d}
+  .cat-work{background:rgba(139,92,246,.12);color:#c084fc}
+  .cat-shopping{background:rgba(236,72,153,.12);color:#f472b6}
+  .cat-games{background:rgba(239,68,68,.12);color:#f87171}
+  .cat-other{background:rgba(100,116,139,.12);color:#94a3b8}
+  .fav-social{background:rgba(59,130,246,.1)}
+  .fav-banking{background:rgba(16,185,129,.1)}
+  .fav-email{background:rgba(245,158,11,.1)}
+  .fav-work{background:rgba(139,92,246,.1)}
+  .fav-shopping{background:rgba(236,72,153,.1)}
+  .fav-games{background:rgba(239,68,68,.1)}
+  .fav-other{background:rgba(100,116,139,.1)}
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center}
+  .modal{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:16px;width:320px;max-height:90vh;overflow-y:auto}
+  .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .modal-hdr span{font-size:13px;font-weight:800}
+  .modal-close{background:none;border:none;color:var(--t2);font-size:16px;cursor:pointer}
+  .modal .inp{margin-bottom:10px}
+  .modal .il{margin-bottom:4px}
+  .sel{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:9px 12px;color:var(--tx);font-size:12px;outline:none;margin-bottom:10px}
+  .sel:focus{border-color:var(--ac)}
+  .ta{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:9px 12px;color:var(--tx);font-size:12px;outline:none;resize:vertical;min-height:60px;font-family:inherit;margin-bottom:10px}
+  .ta:focus{border-color:var(--ac)}
+  .btn-row{display:flex;gap:8px;margin-top:4px}
+  .btn-row .btn-pri{margin-top:0}
+  .btn-danger{flex:1;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:var(--r);padding:9px;color:var(--er);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+  .btn-danger:hover{background:rgba(239,68,68,.2)}
+  /* All tab toolbar */
+  .all-toolbar{display:flex;gap:6px;margin-bottom:10px;align-items:center}
+  .fav-filter{background:none;border:1px solid var(--b);border-radius:6px;padding:4px 8px;color:var(--t2);font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
+  .fav-filter.on{background:rgba(245,158,11,.12);color:var(--wn);border-color:rgba(245,158,11,.3)}
+  .add-btn{background:linear-gradient(135deg,var(--ok),#059669);border:none;border-radius:6px;padding:5px 10px;color:#fff;font-size:10px;font-weight:700;cursor:pointer;margin-left:auto;white-space:nowrap}
+  /* Notes in card */
+  .pwc-notes{font-size:9px;color:var(--t3);margin-top:4px;padding:4px 8px;background:var(--s2);border-radius:5px;line-height:1.5;word-break:break-word}
+  /* Card action row */
+  .card-actions{display:flex;gap:4px;margin-top:6px}
+  .card-act-btn{flex:1;background:var(--s2);border:1px solid var(--b);border-radius:5px;padding:4px;color:var(--t2);font-size:10px;cursor:pointer;transition:all .15s;text-align:center}
+  .card-act-btn:hover{border-color:var(--ac);color:var(--tx)}
+  .card-act-btn.fav-on{color:var(--wn);border-color:rgba(245,158,11,.3)}
+  .card-act-btn.del-btn:hover{border-color:var(--er);color:var(--er)}
+  ::-webkit-scrollbar{width:3px}
+  ::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-ic">🔐</div>
+  <div>
+    <div class="hdr-t">BabaSitaRam Pro</div>
+    <div class="hdr-s">Proprietary Password Manager</div>
+  </div>
+  <div id="lockBtn" style="margin-left:auto;cursor:pointer;color:var(--t2);font-size:16px;display:none" title="Lock">🔒</div>
+  <select id="autoLockSel" style="display:none;margin-left:6px;background:var(--s2);border:1px solid var(--b);border-radius:6px;color:var(--t2);font-size:9px;padding:3px 5px;cursor:pointer;outline:none">
+    <option value="0">🔒 Off</option>
+    <option value="1">1 min</option>
+    <option value="5">5 min</option>
+    <option value="15">15 min</option>
+    <option value="30">30 min</option>
+  </select>
+</div>
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen" class="lock-wrap">
+  <div style="text-align:center;margin-bottom:16px">
+    <div style="font-size:36px;margin-bottom:6px">🔐</div>
+    <div style="font-size:14px;font-weight:800;color:var(--tx)">BabaSitaRam Pro</div>
+    <div style="font-size:10px;color:var(--t2);margin-top:3px">Master Password डालें</div>
+  </div>
+  <label class="il">Master Password</label>
+  <div class="ipw">
+    <input type="password" class="inp" id="mpI" placeholder="Master password...">
+    <button class="eye" id="eyeMpI">👁</button>
+  </div>
+  <button class="btn-pri" id="ulBtn">🔓 Unlock</button>
+  <button class="btn-bio" id="bioBtn" style="display:none">🫆 Fingerprint / Face Unlock</button>
+  <div class="err-msg" id="lErr">❌ गलत Master Password!</div>
+  <div class="bio-hint" id="bioHint"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="tabs">
+    <button class="tab on" data-tab="fill">🤖 AutoFill</button>
+    <button class="tab" data-tab="all">🔑 All</button>
+    <button class="tab" data-tab="imp">📥 Import</button>
+    <button class="tab" data-tab="gen">⚡ Gen</button>
+    <button class="tab" data-tab="bin">🗑️ Bin</button>
+  </div>
+
+  <!-- AUTOFILL TAB -->
+  <div class="pg on" id="pgFill">
+    <div class="site-badge" id="siteBadge">🌐 <span id="siteUrl">Loading...</span></div>
+    <div id="fillList"></div>
+  </div>
+
+  <!-- ALL PASSWORDS TAB -->
+  <div class="pg" id="pgAll">
+    <div class="srch-w">
+      <span>🔍</span>
+      <input class="srch" type="text" placeholder="Search..." id="srchI">
+    </div>
+    <div class="all-toolbar">
+      <button class="fav-filter" id="favFilter">⭐ Favorites</button>
+      <button class="add-btn" id="addBtn">➕ Add</button>
+    </div>
+    <div id="allList"></div>
+  </div>
+
+  <!-- ADD/EDIT MODAL -->
+  <div class="modal-bg" id="modal" style="display:none">
+    <div class="modal">
+      <div class="modal-hdr">
+        <span id="modalTitle">➕ Password Add करें</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <label class="il">Site / App Name *</label>
+      <input type="text" class="inp" id="mSite" placeholder="e.g. Google, Facebook..." style="margin-bottom:10px">
+      <label class="il">Username / Email *</label>
+      <input type="text" class="inp" id="mUser" placeholder="username or email" style="margin-bottom:10px">
+      <label class="il">Password *</label>
+      <div class="ipw" style="margin-bottom:10px">
+        <input type="password" class="inp" id="mPw" placeholder="password">
+        <button class="eye" id="eyeMPw">👁</button>
+      </div>
+      <label class="il">URL <span style="color:var(--t3)">(optional)</span></label>
+      <input type="text" class="inp" id="mUrl" placeholder="https://..." style="margin-bottom:10px">
+      <label class="il">Category</label>
+      <select class="sel" id="mCat">
+        <option>Other</option><option>Social</option><option>Banking</option>
+        <option>Email</option><option>Work</option><option>Shopping</option><option>Games</option>
+      </select>
+      <label class="il">Notes <span style="color:var(--t3)">(optional)</span></label>
+      <textarea class="ta" id="mNotes" placeholder="Extra info..."></textarea>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);margin-bottom:12px;cursor:pointer">
+        <input type="checkbox" id="mFav" style="accent-color:var(--wn)"> ⭐ Favorite mark करें
+      </label>
+      <div class="btn-row">
+        <button class="btn-pri" id="modalSave">💾 Save</button>
+        <button class="btn-danger" id="modalDel" style="display:none">🗑️ Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECYCLE BIN TAB -->
+  <div class="pg" id="pgBin">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--t2)">🗑️ Deleted passwords (30 din)</div>
+      <button class="btn-danger" id="emptyBinBtn" style="padding:4px 10px;font-size:10px">🧹 Empty</button>
+    </div>
+    <div id="binList"></div>
+  </div>
+
+  <!-- IMPORT TAB -->
+  <div class="pg" id="pgImp">
+    <div class="imp-info">
+      ✅ <b>Supported Formats:</b><br>
+      🔐 <b>.vaultbak</b> — Encrypted (Master Password required)<br>
+      📋 <b>.json</b> — VaultX / Bitwarden / Chrome<br>
+      📊 <b>.csv</b> — Chrome / Bitwarden / 1Password
+    </div>
+    <div class="imp-warn" id="impWarn" style="display:none"></div>
+    <div id="impPwWrap">
+      <label class="il">Backup Master Password <span style="color:var(--t3)">(sirf .vaultbak ke liye)</span></label>
+      <div class="ipw">
+        <input type="password" class="inp" id="impPw" placeholder="Backup password...">
+        <button class="eye" id="eyeImpPw">👁</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:6px">
+      <button class="btn-sec" id="selFileBtn" style="flex:1">📁 File Select करें</button>
+    </div>
+    <div style="display:flex;gap:4px;margin-bottom:8px">
+      <button class="fmt-btn on" data-fmt="all" id="fmtAll">All</button>
+      <button class="fmt-btn" data-fmt="vaultbak" id="fmtVb">.vaultbak</button>
+      <button class="fmt-btn" data-fmt="json" id="fmtJson">.json</button>
+      <button class="fmt-btn" data-fmt="csv" id="fmtCsv">.csv</button>
+    </div>
+    <input type="file" id="fImp" accept=".vaultbak,.json,.csv" style="display:none">
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <button class="btn-sec" id="expVbBtn" style="flex:1">🔐 .vaultbak</button>
+      <button class="btn-sec" id="expJsonBtn" style="flex:1">📋 .json</button>
+      <button class="btn-sec" id="expCsvBtn" style="flex:1">📊 .csv</button>
+    </div>
+    <div id="impResult" style="font-size:10px;color:var(--ok);margin-top:6px;display:none"></div>
+  </div>
+
+  <!-- GENERATOR TAB -->
+  <div class="pg" id="pgGen">
+    <div style="background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:14px;font-family:monospace;font-size:16px;text-align:center;color:var(--a2);margin-bottom:10px;cursor:pointer;word-break:break-all;min-height:50px;display:flex;align-items:center;justify-content:center" id="gOut">Click Generate!</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="btn-pri" style="flex:1" id="genBtn">🎲 Generate</button>
+      <button class="btn-sec" style="width:80px;margin-top:0" id="cpGenBtn">📋 Copy</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;font-weight:700">
+      <span>Length</span><span style="background:rgba(59,130,246,.12);color:var(--ac);padding:1px 7px;border-radius:8px" id="lenV">16</span>
+    </div>
+    <input type="range" min="8" max="64" value="16" id="lenS" style="width:100%;height:3px;appearance:none;background:var(--s3);border-radius:2px;cursor:pointer;outline:none;margin-bottom:10px">
+    <div style="font-size:10px;color:var(--t2);text-align:center">Click output to copy • Ctrl+G to generate</div>
+  </div>
+</div>
+
+<!-- Export .vaultbak modal — body level (CSP safe) -->
+<div class="modal-bg" id="expModal" style="display:none">
+  <div class="modal" style="width:290px">
+    <div class="modal-hdr"><span>🔐 Export .vaultbak</span><button class="modal-close" id="expModalClose">✕</button></div>
+    <div style="font-size:10px;color:var(--t2);margin-bottom:10px">AES-256 encryption ke liye Master Password confirm karo</div>
+    <label class="il">Master Password</label>
+    <div class="ipw" style="margin-bottom:12px">
+      <input type="password" class="inp" id="expPwI" placeholder="Master password...">
+      <button class="eye" id="eyeExpPw">👁</button>
+    </div>
+    <button class="btn-pri" id="expConfirmBtn">📤 Export</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>
